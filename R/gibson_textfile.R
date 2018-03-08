@@ -1,9 +1,9 @@
-# + get netatmo data and metadata
-`gibson_netatmo`<-function(date.str=NULL,
+# + get data and metadata from a text file
+`gibson_textfile`<-function(date.str=NULL,
                            format=NULL,
-                           path="/lustre/storeB/users/thomasn/ecflowdata/products/netatmo",
+                           path="",
                            path.date="yyyy/mm/dd",
-                           fbname="netatmo_",
+                           fbname="",
                            fbname.date="yyyymmddThhZ",
                            fext="txt",
                            fsep=";",

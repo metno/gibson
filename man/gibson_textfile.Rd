@@ -1,15 +1,15 @@
-\name{gibson_netatmo}
-\alias{gibson_netatmo}
-\title{get NETAMO observations from text files}
+\name{gibson_textfile}
+\alias{gibson_textfile}
+\title{get metadata and observations from text files}
 \description{
-  Read NETAMO observations from text files stored somewhere on the disk.
+  Read observations from a text files stored somewhere on the disk.
 }
 \usage{
-gibson_netatmo(date.str=NULL,
+gibson_textfile(date.str=NULL,
                format=NULL,
-               path="/lustre/storeB/users/thomasn/ecflowdata/products/netatmo",
+               path="",
                path.date="yyyy/mm/dd"
-               fbname="netatmo_"
+               fbname=""
                fbname.date="yyyymmddThhZ"
                fext="txt",
                fsep=";",
@@ -33,9 +33,9 @@ gibson_netatmo(date.str=NULL,
   \item{na.rm}{logical, decide whether NAs are included in the output}
 }
 \details{
-  The name of the NETATMO file is set to path/path.date/fbname+fbname.date+fext.
+  The name of the file is set to path/path.date/fbname+fbname.date+fext.
 
-  The format of the NETAMO input is:
+  The format of the input is something like:
 
 lat;lon;elev;FF;PR;TA;DG;DD;RR_1;FG;UU
 59.520877;10.698517;38;0.56;1006.20;-4.60;103;90;-999;1.94;81
@@ -49,7 +49,7 @@ lat;lon;elev;FF;PR;TA;DG;DD;RR_1;FG;UU
   TA hourly temperature; DG direction of the wind gust; DD wind direction;
   RR_1 hourly total precipitation; FG wind gust; UU relative humidity.
   
-  The NETATMO values refers to the last 10 minutes of the hour used as time stamp.
+  The values refers to the last 10 minutes of the hour used as time stamp.
   Exceptions are: RR_1 that is the total precipitation for the hour; ....
 
 
@@ -62,10 +62,10 @@ lat;lon;elev;FF;PR;TA;DG;DD;RR_1;FG;UU
 
 \seealso{ \code{\link{replaceDate}} }
 \examples{
-# get NETATMO precipitation and temperature data (not NAs)
-data <- gibson_netatmo(date.str="2018.03.04.12",format="\%Y.\%m.\%d.\%H",selout=c("lat","lon","elev","RR_1","TA"))
+# get precipitation and temperature data (not NAs)
+data <- gibson_textfile(date.str="2018.03.04.12",format="\%Y.\%m.\%d.\%H",selout=c("lat","lon","elev","RR_1","TA"))
 
 }
 % at least one, from /Library/Frameworks/R.framework/Versions/2.1.1/Resources/doc
-\keyword{ NETAMO, read, text, file }
+\keyword{ observation, read, text, file }
 
