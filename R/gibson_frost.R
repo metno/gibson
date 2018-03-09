@@ -20,79 +20,24 @@
                          WMOonly=F,
                          try.again=1,
                          sleep_sec=5,
-                         na.rm=T)
+                         na.rm=T,
+                         url.show=F)
 {
 #------------------------------------------------------------------------------
-# Description:
-# Frost API retrieve observations and metadata from the Climate Database (KDVH)
-# of the Norwegian Meterological Institute (MET Norway or MET.NO).
-# Frost documentation is available at frost.met.no.
-# The KDVH contains in-situ observations measured by sensors located at stations
-# belonging to several different station holders (not only "MET.NO").
-# One station can belong to more than one station holder.
-# The key used by frost is the data source identifier of an observation.
-# From the documentation on frost.met.no:
-# "The ID(s) of the data sources to get time series for as a comma-separated 
-# list of Frost API station IDs: SN<int>[:<int>|all] 
-# (e.g. SN18700, SN18700:0, or SN18700:all). 0 is the main sensor and x≥1 is a 
-# parallel sensor."
-# The data source identifier is not a unique key.
-# The observations measured by the sensors and stored in the KDVH can be  
-# post-processed. They can be aggregated in different ways over
-# different time intervals (hours/days/months/years/...). They can be 
-# quality checked.
-# The time stamps associated to the observed values mark the end of the 
-# aggregation period. The time zone assumed for the time stamps is UTC.
+# Documentation: see help(gibson_frost) on R or gibson/man/gibson_frost.Rd
+#------------------------------------------------------------------------------
+#  This file is free software: you may copy, redistribute and/or modify it  
+#  under the terms of the GNU General Public License as published by the  
+#  Free Software Foundation, either version 2 of the License, or (at your  
+#  option) any later version.  
 #  
-#
-# Input Parameters:
-# client_id character string with the API Client ID 
-#            (see https://frost.met.no/auth/requestCredentials.html)
-# Welements character vector with Weather and Climate Elements Id
-#            (see https://frost.met.no/elementtable)           
-# sources character vector with the source Ids, use "ALL" to retrieve all the
-#         sources within the specified selection. Note that if doit.meta=FALSE
-#         then sources="ALL" will generate an error message.
-# start_date character string with the time stamp of the first observation 
-# stop_date character string with the time stamp of the last observation 
-# format charater string specifying the date-time format of start_date and
-#        stop_date (see strptime help page)
-# formatOUT charater string specifying the date-time format desired for the
-#           the output (see strptime help page)
-# countries character vector with the abbreviations of the countries. Only
-#           data sources located in those countries will be returned.
-# spatial_extent numeric vector of the form c(long_min,long_max,lan_min,
-#                lan_max) that identifies a rectangle used to select the 
-#                data sources. The lower left corner is (long_min,lan_min)
-#                the upper right corner is (long_max,lat_max).
-# stationholders character vector with the names of the station holders
-# stationholders.exclude logical, it is used in combination with stationholders
-#                        If FALSE, then the stationholder list will be used 
-#                        to select the station holders to include in the
-#                        output.
-#                        If TRUE, then the stationholder list will be used 
-#                        to select the station holders NOT to include in the
-#                        output.
-# doit.meta logical. If set to TRUE then the source metadata are retrieved
-# doit.data logical. If set to TRUE then the observed values are retrieved 
-# WMOonly logical, if TRUE then only WMO stations (i.e., having a WMO code
-#         will be returned
-# try.again numeric value specifying the number of request attemps before
-#           giving up
-# sleep_sec numeric value, number of seconds to wait between two consecutive 
-#           requests
-# na.rm logical, if TRUE remove NAs from the output
-#
-#
-# Returned values:
-# Only stations with complete (long,lat,elevation) information are returned. 
-# 
-# Frost API Response Messages:
-# HTTP_Status_Code Reason
-#  400 	            Invalid parameter value or malformed request.
-#  401              Unauthorized client ID.
-#  404              No data was found for the list of query Ids.
-#  500              Internal server error.
+#  This file is distributed in the hope that it will be useful, but  
+#  WITHOUT ANY WARRANTY; without even the implied warranty of  
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  
+#  General Public License for more details.  
+#  
+#  You should have received a copy of the GNU General Public License  
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #------------------------------------------------------------------------------
 #
   require(jsonlite)
@@ -136,7 +81,7 @@
 # string initialization
   str0<-paste("https://",client_id,"@frost.met.no",sep="")
   if (!is.null(spatial_extent))
-    polygonstr<-paste("&geometry=POLYGON%20((",
+    polygonstr<-paste("geometry=POLYGON%20((",
                       spatial_extent[1],"%20",spatial_extent[3],",",
                       spatial_extent[1],"%20",spatial_extent[4],",",
                       spatial_extent[2],"%20",spatial_extent[4],",",
@@ -153,13 +98,13 @@
     for (i in 1:length(oldElementCodes)) {
       switch(oldElementCodes[i],
              "RR_1" = {  elementId[i]="sum(precipitation_amount PT1H)"
-                         timeOffset[i]="PT06H"
+                         timeOffset[i]="PT00H"
                          timeResolution[i]="PT1H"
                          level.value[i]=NA
                          level.levelType[i]=NA
                       },
                "TA" = {  elementId[i]="air_temperature"
-                         timeOffset[i]="PT18H"
+                         timeOffset[i]="PT00H"
                          timeResolution[i]="PT1H"
                          level.value[i]=2
                          level.levelType[i]="height_above_ground"
@@ -187,9 +132,9 @@
   }
   # replace white spaces with %20, so that url works 
   elementIdMod<-gsub(" ","%20",elementId)
-  elementIdstr<-paste("&elements=",paste(elementIdMod,collapse=","),sep="")
-  timeOffsetstr<-paste("&timeoffsets=",paste(timeOffset,collapse=","),sep="")
-  timeResolutionstr<-paste("&timeresolutions=",
+  elementIdstr<-paste("elements=",paste(elementIdMod,collapse=","),sep="")
+  timeOffsetstr<-paste("timeoffsets=",paste(timeOffset,collapse=","),sep="")
+  timeResolutionstr<-paste("timeresolutions=",
                            paste(timeResolution,collapse=","),sep="")
   level.valueMod<-level.value
   if (any(is.na(level.value))) 
@@ -214,7 +159,7 @@
     start_dateMod<-start_date
     stop_dateMod<-stop_date
   }
-  datestr<-paste("&referencetime=",start_dateMod,"/",stop_dateMod,sep="")
+  datestr<-paste("referencetime=",start_dateMod,"/",stop_dateMod,sep="")
 #------------------------------------------------------------------------------
 # >> METADATA <<
   #............................................................................
@@ -223,19 +168,21 @@
   # Supported fields: wmoid, shipcode, name, country, county, validtime, 
   #  externalid, fields, wigosid, ids, municipality, stationholder, icaocode, 
   #  types, geometry
+  # 
+  # retrieve metadata
   if (doit.meta) {
     str1<-paste(str0,
                 "/sources/v0.jsonld?types=SensorSystem",
                 "&fields=id,geometry,masl,stationholders,wmoid",
                 sep="")
-    if (!is.null(spatial_extent)) str1<-paste(str1,polygonstr,sep="")
+    if (!is.null(spatial_extent)) str1<-paste(str1,"&",polygonstr,sep="")
     # case of all stations are requested
     if (sources=="ALL") {
       # query by country
       if (!is.null(countries)) {
         for (i in 1:length(countries)) {
           url<-paste(str1,"&country=",countries[i],sep="")
-#          print(url)
+          if (url.show) print(url)
           for (k in 1:try.again) {
             xs<-try(fromJSON(url,flatten=T))
             if (class(xs)!="try-error") break
@@ -299,7 +246,7 @@
       # generic query
       } else {
         url<-str1
-        print(url)
+        if (url.show) print(url)
         for (k in 1:try.again) {
           xs<-try(fromJSON(url,flatten=T))
           if (class(xs)!="try-error") break
@@ -356,6 +303,7 @@
     } else {
       sourcesstr<-paste("&sources=",paste(sources,collapse=","),sep="")
       url<-paste(str1,sources,sep="")
+      if (url.show) print(url)
       for (k in 1:try.again) {
         xs<-try(fromJSON(url,flatten=T))
         if (class(xs)!="try-error") break
@@ -411,14 +359,15 @@
     if (!exists("metaStat")) return(NULL)
     nsou<-length(metaStat$id)
     sourcesstr<-paste("&sources=", paste(metaStat$id,collapse=","),sep="")
+    #
     # selection based on the station holder
     if (!is.null(stationholders)) {
       match<-vector(mode="numeric",length=nsou)
       match[]<-NA
       if (stationholders.exclude) {
-        for (i in 1:nsou) if (any(sthold[[i]] %in% stationholders)) match[i]<-NA
+        for (i in 1:nsou) if (!any(sthold[[i]] %in% stationholders)) match[i]<-i
       } else {
-        for (i in 1:nsou) if (any(sthold[[i]] %in% stationholders)) match[i]<-i
+        for (i in 1:nsou) if ( any(sthold[[i]] %in% stationholders)) match[i]<-i
       }
       if (!any(!is.na(match))) {
         print("no data available for the stationholder(s) selected")
@@ -439,11 +388,6 @@
       sthold<-list()
       for (i in 1:nsou) sthold[[i]]<-stholdtmp[[match[ix[i]]]]
     }
-  # in case no metadata are required
-  } else {
-    metaSens<-NULL
-    stationholders<-NULL
-  }
   #
   #............................................................................
   # ==> retrieve sensor information
@@ -458,45 +402,78 @@
   #      the same station. For this reason, the sourceId (unique key) is
   #      formatted as SNxx..x:y where: SNxx..x=id as in metaStat, y c(0,1,...)
   #      sensor number (0 indicates the first sensor)
-  url<-paste(str0,
-             "/observations/availableTimeSeries/v0.jsonld?",
-             "fields=sourceId,performanceCategory,exposureCategory,",
-             "timeOffset,timeResolution",
-             elementIdstr,
-             timeOffsetstr,
-             timeResolutionstr,
-             level.valuestr,
-             level.levelTypestr,
-             datestr,
-             sep="")
-  for (k in 1:try.again) {
-    xs<-try(fromJSON(url,flatten=T))
-    if (class(xs)!="try-error") break
-    Sys.sleep(sleep_sec)
-  }
-  # ERROR: frost is not happy with our request, or it is in a bad mood
-  if (class(xs)=="try-error") return(NULL)
-  # proceed only if we got some data
-  if (xs$totalItemCount>0) {
-    sourcesaux<-vector()
-    sensIdaux<-vector()
-    for (i in 1:xs$totalItemCount) {
-      sourcesaux[i]<-strsplit(xs$data$sourceId,":")[[i]][1]
-      sensIdaux[i]<-strsplit(xs$data$sourceId,":")[[i]][2]
+    url<-paste(str0,
+               "/observations/availableTimeSeries/v0.jsonld?",
+  #             "fields=sourceId,performanceCategory,exposureCategory,",
+  #             "timeOffset,timeResolution",
+               elementIdstr,
+               "&",timeOffsetstr,
+               "&",timeResolutionstr,
+               level.valuestr,
+               level.levelTypestr,
+               "&",datestr,
+               sep="")
+    if (url.show) print(url)
+    for (k in 1:try.again) {
+      xs<-try(fromJSON(url,flatten=T))
+      if (class(xs)!="try-error") break
+      Sys.sleep(sleep_sec)
     }
-    # check if there is an intersection between the two sets of 
-    #  (i) selected stations (metaStat) and (ii) available sensors
-    if (any(!is.na(match(sourcesaux,metaStat$id)))) {
-      match<-match(sourcesaux,metaStat$id)
-      ix<-which(!is.na(match))
-      metaSens<-data.frame(sourcesaux[ix],
-                           sensIdaux[ix],
-                           xs$data$sourceId[ix],
-                           xs$data$performanceCategory[ix],
-                           xs$data$exposureCategory[ix],
-                           metaStat$lon[match[ix]],
-                           metaStat$lat[match[ix]],
-                           metaStat$z[match[ix]],
+    # ERROR: frost is not happy with our request, or it is in a bad mood
+    if (class(xs)=="try-error") return(NULL)
+    # proceed only if we got some data
+    if (xs$totalItemCount>0) {
+      sourcesaux<-vector()
+      sensIdaux<-vector()
+      for (i in 1:xs$totalItemCount) {
+        sourcesaux[i]<-strsplit(xs$data$sourceId,":")[[i]][1]
+        sensIdaux[i]<-strsplit(xs$data$sourceId,":")[[i]][2]
+      }
+      # check if there is an intersection between the two sets of 
+      #  (i) selected stations (metaStat) and (ii) available sensors
+      if (any(!is.na(match(sourcesaux,metaStat$id)))) {
+        match<-match(sourcesaux,metaStat$id)
+        ix<-which(!is.na(match))
+        metaSens<-data.frame(sourcesaux[ix],
+                             sensIdaux[ix],
+                             xs$data$sourceId[ix],
+                             xs$data$performanceCategory[ix],
+                             xs$data$exposureCategory[ix],
+                             metaStat$lon[match[ix]],
+                             metaStat$lat[match[ix]],
+                             metaStat$z[match[ix]],
+                             stringsAsFactors=F)
+        names(metaSens)<-c("source",
+                           "sensId",
+                           "sourceId",
+                           "performanceCategory",
+                           "exposureCategory",
+                           "lon",
+                           "lat",
+                           "z")
+      } else {
+        print(paste("no data available: the two sets of (i) selected stations",
+                    "and (ii) available sensors did not match"))
+        return(NULL)
+      }
+    } else {
+      print("no data available for the Welement/time selected")
+      return(NULL)
+    }
+    # remove duplicates
+    dupflag<-duplicated(metaSens)
+    if (any(dupflag)) {
+      aux<-metaSens
+      rm(metaSens)
+      ix<-which(!dupflag)
+      metaSens<-data.frame(aux$source[ix],
+                           aux$sensId[ix],
+                           aux$sourceId[ix],
+                           aux$performanceCategory[ix],
+                           aux$exposureCategory[ix],
+                           aux$lon[ix],
+                           aux$lat[ix],
+                           aux$z[ix],
                            stringsAsFactors=F)
       names(metaSens)<-c("source",
                          "sensId",
@@ -506,17 +483,38 @@
                          "lon",
                          "lat",
                          "z")
-    } else {
-      print(paste("no data available: the two sets of (i) selected stations",
-                  "and (ii) available sensors did not match"))
-      return(NULL)
+      rm(aux)
     }
+    nsouId<-length(metaSens$sensId)
+    # set the list of station holders so to match the sensor list
+    tmp<-list()
+    for (i in 1:nsouId) {
+      ix<-which(metaStat$id==metaSens$source[i])
+      if (length(ix)!=1) {
+        if (length(ix)==0) {
+          print(paste("WARNING not possible to find station holders for",
+                      "source",metaSens$source[i]))
+          tmp[[i]]<-NULL
+        } else {
+          print(paste("WARNING duplicate sets of station holders for",
+                      "source",metaSens$source[i],
+                      "we use just one of these sets"))
+          tmp[[i]]<-sthold[[ix[1]]]
+        }
+      } else {
+        tmp[[i]]<-sthold[[ix]]
+      }
+    }
+    rm(sthold)
+    sthold<-tmp
+    rm(tmp)  
+    #
+    rm(xs) 
+  # in case no metadata are required
   } else {
-    print("no data available for the Welement/time selected")
-    return(NULL)
+    metaSens<-NULL
+    sthold<-NULL
   }
-  nsouId<-length(metaSens$sensId)
-  rm(xs) 
 #------------------------------------------------------------------------------
 # >> DATA <<
 # == query observations@frost ==
@@ -532,10 +530,10 @@ update_frost_e<-function(x){
                      NA,as.numeric(x[[1]]$value))
   frost_e$value_qcode[i,2]<-ifelse(is.null(x[[1]]$qualityCode),
                      NA,as.numeric(x[[1]]$qualityCode))
-  levaux<-ifelse(is.null(x[[1]]$level),
-           NA,x[[1]]$level)
-  levTaux<-ifelse(is.null(x[[1]]$levelType),
-            "",x[[1]]$levelType)
+  levaux<-ifelse(is.null(x[[1]]$level.value),
+           NA,x[[1]]$level.value)
+  levTaux<-ifelse(is.null(x[[1]]$level.levelType),
+            "",x[[1]]$level.levelType)
   elIdaux<-ifelse(is.null(x[[1]]$elementId),
             "",x[[1]]$elementId)   
   tOffaux<-ifelse(is.null(x[[1]]$timeOffset),
@@ -567,20 +565,36 @@ update_frost_e<-function(x){
       frost_e$oelId[i]<-oldElementCodes[j]
     }
   }
-} # END of FUN     
+} # END of FUN
+    if (is.null(metaSens) & is.null(sources)) {
+      print("ERROR a list of sources is needed to retrieve data")
+      return(NULL)
+    } else {
+      if (!is.null(sources)) {
+        if (sources!="ALL") {
+          sourcesId<-sources
+          rm(sources)
+        } else {
+          sourcesId<-metaSens$sourceId
+        }
+      } else {
+        sourcesId<-metaSens$sourceId
+      }
+    }
     souIdstep<-65
-    sourcesIdstr<-paste("&sources=", paste(metaSens$sourceId,collapse=","),sep="")
     str1<-paste(str0,
                "/observations/v0.jsonld?",
                "fields=elementId,sourceId,value,referenceTime,qualityCode,",
                "timeResolution,timeOffset,level",
-               elementIdstr,
-               timeOffsetstr,
-               timeResolutionstr,
+               "&",elementIdstr,
+               "&",timeOffsetstr,
+               "&",timeResolutionstr,
                level.valuestr,
-               level.levelTypestr,
-               datestr,
+#               level.levelTypestr,
+               "&",datestr,
                sep="")
+    sourcesIdstr<-paste("&sources=",
+                      paste(sourcesId,collapse=","),sep="")
     url<-paste(str1,
                sourcesIdstr,
                sep="")
@@ -593,11 +607,12 @@ update_frost_e<-function(x){
         i2<-min(i*souIdstep,nsouId)
         if (i2<i1) break
         sourcesIdstr1<-paste("&sources=", 
-                             paste(metaSens$sourceId[i1:i2],
+                             paste(sourcesId[i1:i2],
                              collapse=","),sep="")
         url<-paste(str1,
                    sourcesIdstr1,
                    sep="")
+        if (url.show) print(url)
         for (k in 1:try.again) {
           xs<-try(fromJSON(url,flatten=T))
           if (class(xs)!="try-error") break
@@ -631,6 +646,7 @@ update_frost_e<-function(x){
                                     format="%Y-%m-%dT%H:%M:%S"))
         datesout<-Rdate2str(dates,formatOUT)
         if (!exists("frost_data")) {
+          dates_full<-dates
           frost_data<-data.frame(frost_e$elId[ix],
                            xs$data$sourceId[ix],
                            datesout, 
@@ -643,6 +659,7 @@ update_frost_e<-function(x){
                            frost_e$oelId[ix],
                            stringsAsFactors=F)
         } else {
+          dates_full<-c(dates_full,dates)
           frost_data<-rbind(frost_data,
                       data.frame(frost_e$elId[ix],
                                  xs$data$sourceId[ix],
@@ -656,8 +673,8 @@ update_frost_e<-function(x){
                                  frost_e$oelId[ix],
                                  stringsAsFactors=F) )
         }
-        rm(frost_e)
-      }
+        rm(dates,datesout,frost_e)
+      } # end loop over several queries
       if (!exists("frost_data")) {
         frost_data<-integer(0)
       } else {
@@ -671,10 +688,10 @@ update_frost_e<-function(x){
                              "level",
                              "levelType",
                              "oldElementCodes")
-
       }
     # all the data retrieved in one shot
     } else {
+      if (url.show) print(url)
       for (k in 1:try.again) {
         xs<-try(fromJSON(url,flatten=T))
         if (class(xs)!="try-error") break
@@ -709,33 +726,80 @@ update_frost_e<-function(x){
           dates<-as.POSIXlt(str2Rdate(xs$data$referenceTime[ix],
                                       format="%Y-%m-%dT%H:%M:%S"))
           datesout<-Rdate2str(dates,formatOUT)
+          dates_full<-dates
           frost_data<-data.frame(frost_e$elId[ix],
-                           xs$data$sourceId[ix],
-                           datesout, 
-                           frost_e$value_qcode[ix,1],
-                           frost_e$value_qcode[ix,2],
-                           frost_e$tOff[ix],
-                           frost_e$tRes[ix],
-                           frost_e$lev[ix],
-                           frost_e$levT[ix],
-                           frost_e$oelId[ix],
-                           stringsAsFactors=F)
+                                 xs$data$sourceId[ix],
+                                 datesout, 
+                                 frost_e$value_qcode[ix,1],
+                                 frost_e$value_qcode[ix,2],
+                                 frost_e$tOff[ix],
+                                 frost_e$tRes[ix],
+                                 frost_e$lev[ix],
+                                 frost_e$levT[ix],
+                                 frost_e$oelId[ix],
+                                 stringsAsFactors=F)
           names(frost_data)<-c("elementId",
-                         "sourceId",
-                         "date_time",
-                         "value",
-                         "qcode",
-                         "timeOffset",
-                         "timeResolution",
-                         "level",
-                         "levelType",
-                         "oldElementCodes")
-          rm(frost_e)
+                               "sourceId",
+                               "date_time",
+                               "value",
+                               "qcode",
+                               "timeOffset",
+                               "timeResolution",
+                               "level",
+                               "levelType",
+                               "oldElementCodes")
+          rm(dates,datesout,frost_e)
         }
       } else {
         frost_data<-integer(0)
       }
       rm(xs)
+    } # END of data retrieve (one or more shots)
+    # remove duplicates for daily data when needed
+    if (any(frost_data$timeResolution=="P1D")) {
+      aux<-frost_data$timeResolution=="P1D"
+      day<-Rdate2str(dates_full,"%Y-%m-%d")
+      hour<-Rdate2str(dates_full,"%H")
+      # remove RR duplicates
+      aux1<-aux & 
+            frost_data$elementId=="sum(precipitation_amount P1D)" &
+            hour %in% c("00","06") &
+            frost_data$timeOffset=="PT06H"
+      if (any(aux1)) {
+#        sou<-gsub(":","",gsub("SN","",)frost_data$sourceId)
+        
+        dupflag<-aux1 & duplicated(data.frame(frost_data$sourceId,
+                                              day,
+                                              frost_data$value,
+                                              frost_data$qcode))
+        if (any(dupflag)) {
+          tmp<-frost_data
+          rm(frost_data)
+          ix<-which(!dupflag)
+          frost_data<-data.frame(tmp$elementId[ix],
+                                 tmp$sourceId[ix],
+                                 tmp$date_time[ix], 
+                                 tmp$value[ix],
+                                 tmp$qcode[ix],
+                                 tmp$timeOffset[ix],
+                                 tmp$timeResolution[ix],
+                                 tmp$level[ix],
+                                 tmp$levelType[ix],
+                                 tmp$oldElementCodes[ix],
+                                 stringsAsFactors=F)
+          names(frost_data)<-c("elementId",
+                               "sourceId",
+                               "date_time",
+                               "value",
+                               "qcode",
+                               "timeOffset",
+                               "timeResolution",
+                               "level",
+                               "levelType",
+                               "oldElementCodes")
+          rm(tmp)
+        }
+      }
     }
   # caso of doit.data=F
   } else {
