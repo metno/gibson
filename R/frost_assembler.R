@@ -1,26 +1,27 @@
 #+ get in-situ observations from frost.met.no
-`gibson_frost`<-function(client_id=NULL,
-                         oldElementCodes=NULL,
-                         elementId=NULL,
-                         timeOffset=NULL,
-                         timeResolution=NULL,
-                         level.value=NULL,
-                         level.levelType=NULL,
-                         sources="ALL",
-                         start_date=NULL,
-                         stop_date=NULL,
-                         format="%Y-%m-%dT%H:%M",
-                         countries="NO",
-                         spatial_extent=c(4,34,54,72),
-                         stationholders=NULL,
-                         stationholders.exclude=F,
-                         doit.meta=T,
-                         doit.data=T,
-                         WMOonly=F,
-                         try.again=1,
-                         sleep_sec=5,
-                         na.rm=T,
-                         url.show=F)
+`frost_assembler`<-function(client_id=NULL,
+                            oldElementCodes=NULL,
+                            elementId=NULL,
+                            timeOffset=NULL,
+                            timeResolution=NULL,
+                            level.value=NULL,
+                            level.levelType=NULL,
+                            sources="ALL",
+                            start_date=NULL,
+                            stop_date=NULL,
+                            format="%Y-%m-%dT%H:%M",
+                            formatOUT="%Y-%m-%dT%H",
+                            countries="NO",
+                            spatial_extent=c(4,34,54,72),
+                            stationholders=NULL,
+                            stationholders.exclude=F,
+                            doit.meta=T,
+                            doit.data=T,
+                            WMOonly=F,
+                            try.again=1,
+                            sleep_sec=5,
+                            na.rm=T,
+                            url.show=F)
 {
 #------------------------------------------------------------------------------
 # Documentation: see help(gibson_frost) on R or gibson/man/gibson_frost.Rd
@@ -68,14 +69,14 @@
           " elementId,timeOffset,timeResolution,level.value,level.levelType "))
     return(NULL)
   }
-#  oldElementCodesAvail<-c("RR_1","TA","TAM","TAMRR","RR")
-#  if ( !is.null(oldElementCodes)) {
-#    if (any(!oldElementCodes %in% oldElementCodesAvail)) {
-#      print("ERROR oldElementCodes must be one of")
-#      print(oldElementCodesAvail)
-#      return(NULL)
-#    }
-#  } 
+  oldElementCodesAvail<-c("RR_1","TA","TAM","TAMRR","RR")
+  if ( !is.null(oldElementCodes)) {
+    if (any(!oldElementCodes %in% oldElementCodesAvail)) {
+      print("ERROR oldElementCodes must be one of")
+      print(oldElementCodesAvail)
+      return(NULL)
+    }
+  } 
 #------------------------------------------------------------------------------
 # string initialization
   str0<-paste("https://",client_id,"@frost.met.no",sep="")
@@ -89,31 +90,64 @@
                       sep="")
   # Weather and Climate Elements
   if (!is.null(oldElementCodes)) {
-    ElCodes<-frost_translate_oldElementCodes(oldElementCodes)
-  } else {
-    ElCodes<-data.frame(elementId,
-                        timeOffset,
-                        timeResolution,
-                        level.value,
-                        level.levelType,
-                        stringsAsFactors=F)  
+    elementId<-vector()
+    timeOffset<-vector()
+    timeResolution<-vector()
+    level.value<-vector()
+    level.levelType<-vector()
+    for (i in 1:length(oldElementCodes)) {
+      switch(oldElementCodes[i],
+             "RR_1" = {  elementId[i]="sum(precipitation_amount PT1H)"
+                         timeOffset[i]="PT00H"
+                         timeResolution[i]="PT1H"
+                         level.value[i]=NA
+                         level.levelType[i]=NA
+                      },
+               "TA" = {  elementId[i]="air_temperature"
+                         timeOffset[i]="PT00H"
+                         timeResolution[i]="PT1H"
+                         level.value[i]=2
+                         level.levelType[i]="height_above_ground"
+                      },
+              "TAM" = {  elementId[i]="mean(air_temperature P1D)"
+                         timeOffset[i]="PT18H"
+                         timeResolution[i]="P1D"
+                         level.value[i]=2
+                         level.levelType[i]="height_above_ground"
+                      },
+            "TAMRR" = {  elementId[i]="mean(air_temperature P1D)"
+                         timeOffset[i]="PT06H"
+                         timeResolution[i]="P1D"
+                         level.value[i]=2
+                         level.levelType[i]="height_above_ground"
+                      },
+               "RR" = {  elementId[i]="sum(precipitation_amount P1D)"
+                         timeOffset[i]="PT06H"
+                         timeResolution[i]="P1D"
+                         level.value[i]=NA
+                         level.levelType[i]=NA
+                      }
+            )
+    }
   }
   # replace white spaces with %20, so that url works 
-  elementIdMod<-gsub(" ","%20",ElCodes$elementId)
-  elementIdstr<-paste("elements=",
-                      paste(elementIdMod,collapse=","),sep="")
-  timeOffsetstr<-paste("timeoffsets=",
-                       paste(ElCodes$timeOffset,collapse=","),sep="")
+  elementIdMod<-gsub(" ","%20",elementId)
+  elementIdstr<-paste("elements=",paste(elementIdMod,collapse=","),sep="")
+  timeOffsetstr<-paste("timeoffsets=",paste(timeOffset,collapse=","),sep="")
   timeResolutionstr<-paste("timeresolutions=",
-                           paste(ElCodes$timeResolution,collapse=","),sep="")
-  level.value<-ElCodes$level.value[which(!is.na(ElCodes$level.value))]
-  level.valuestr<-ifelse(length(level.value)>0,
-    paste("&levels=",paste(level.value,collapse=","),sep=""),"")
-  level.levelType<-ElCodes$level.levelType[which(
-     !is.na(ElCodes$level.levelType) & 
-     ElCodes$level.levelType!="")]
-  level.levelTypestr<-ifelse(length(level.levelType)>0,
-    paste("&levelTypes=",paste(level.levelType,collapse=","),sep=""),"")
+                           paste(timeResolution,collapse=","),sep="")
+  level.valueMod<-level.value
+  if (any(is.na(level.value))) 
+    level.valueMod<-level.value[which(!is.na(level.value))]
+  level.valuestr<-ifelse(length(level.valueMod)>0,
+                   paste("&levels=",paste(level.value,collapse=","),sep=""),
+                   "")
+  level.levelTypeMod<-level.levelType
+  if (any(is.na(level.levelType))) 
+    level.levelTypeMod<-level.levelType[which(!is.na(level.levelType))]
+  level.levelTypestr<-ifelse(length(level.levelTypeMod)>0,
+                   paste("&levelTypes=",paste(level.levelType,collapse=","),sep=""),
+                   "")
   # play with dates so that frost is happy
   formatFrost<-"%Y-%m-%dT%H:%M"
   if (format!=formatFrost) {
@@ -400,23 +434,23 @@
       if (any(!is.na(match(sourcesaux,metaStat$id)))) {
         match<-match(sourcesaux,metaStat$id)
         ix<-which(!is.na(match))
-        frost_meta<-data.frame(sourcesaux[ix],
-                               sensIdaux[ix],
-                               xs$data$sourceId[ix],
-                               xs$data$performanceCategory[ix],
-                               xs$data$exposureCategory[ix],
-                               metaStat$lon[match[ix]],
-                               metaStat$lat[match[ix]],
-                               metaStat$z[match[ix]],
-                               stringsAsFactors=F)
-        names(frost_meta)<-c("source",
-                             "sensId",
-                             "sourceId",
-                             "performanceCategory",
-                             "exposureCategory",
-                             "lon",
-                             "lat",
-                             "z")
+        metaSens<-data.frame(sourcesaux[ix],
+                             sensIdaux[ix],
+                             xs$data$sourceId[ix],
+                             xs$data$performanceCategory[ix],
+                             xs$data$exposureCategory[ix],
+                             metaStat$lon[match[ix]],
+                             metaStat$lat[match[ix]],
+                             metaStat$z[match[ix]],
+                             stringsAsFactors=F)
+        names(metaSens)<-c("source",
+                           "sensId",
+                           "sourceId",
+                           "performanceCategory",
+                           "exposureCategory",
+                           "lon",
+                           "lat",
+                           "z")
       } else {
         print(paste("no data available: the two sets of (i) selected stations",
                     "and (ii) available sensors did not match"))
@@ -427,43 +461,43 @@
       return(NULL)
     }
     # remove duplicates
-    dupflag<-duplicated(frost_meta)
+    dupflag<-duplicated(metaSens)
     if (any(dupflag)) {
-      aux<-frost_meta
-      rm(frost_meta)
+      aux<-metaSens
+      rm(metaSens)
       ix<-which(!dupflag)
-      frost_meta<-data.frame(aux$source[ix],
-                             aux$sensId[ix],
-                             aux$sourceId[ix],
-                             aux$performanceCategory[ix],
-                             aux$exposureCategory[ix],
-                             aux$lon[ix],
-                             aux$lat[ix],
-                             aux$z[ix],
-                             stringsAsFactors=F)
-      names(frost_meta)<-c("source",
-                           "sensId",
-                           "sourceId",
-                           "performanceCategory",
-                           "exposureCategory",
-                           "lon",
-                           "lat",
-                           "z")
+      metaSens<-data.frame(aux$source[ix],
+                           aux$sensId[ix],
+                           aux$sourceId[ix],
+                           aux$performanceCategory[ix],
+                           aux$exposureCategory[ix],
+                           aux$lon[ix],
+                           aux$lat[ix],
+                           aux$z[ix],
+                           stringsAsFactors=F)
+      names(metaSens)<-c("source",
+                         "sensId",
+                         "sourceId",
+                         "performanceCategory",
+                         "exposureCategory",
+                         "lon",
+                         "lat",
+                         "z")
       rm(aux)
     }
-    nsouId<-length(frost_meta$sensId)
+    nsouId<-length(metaSens$sensId)
     # set the list of station holders so to match the sensor list
     tmp<-list()
     for (i in 1:nsouId) {
-      ix<-which(metaStat$id==frost_meta$source[i])
+      ix<-which(metaStat$id==metaSens$source[i])
       if (length(ix)!=1) {
         if (length(ix)==0) {
           print(paste("WARNING not possible to find station holders for",
-                      "source",frost_meta$source[i]))
+                      "source",metaSens$source[i]))
           tmp[[i]]<-NULL
         } else {
           print(paste("WARNING duplicate sets of station holders for",
-                      "source",frost_meta$source[i],
+                      "source",metaSens$source[i],
                       "we use just one of these sets"))
           tmp[[i]]<-sthold[[ix[1]]]
         }
@@ -478,7 +512,7 @@
     rm(xs) 
   # in case no metadata are required
   } else {
-    frost_meta<-NULL
+    metaSens<-NULL
     sthold<-NULL
   }
 #------------------------------------------------------------------------------
@@ -507,14 +541,14 @@ update_frost_e<-function(x){
   tResaux<-ifelse(is.null(x[[1]]$timeResolution),
             "",x[[1]]$timeResolution)
   if (!is.na(levaux) & levTaux!="") {
-    aux<-levaux==ElCodes$level.value &
-         levTaux==ElCodes$level.levelType
+    aux<-levaux==level.value &
+         levTaux==level.levelType
   } else {
-    aux<-rep(T,length=length(ElCodes$elementId))
+    aux<-rep(T,length=length(elementId))
   }
-  aux<- aux & elIdaux==ElCodes$elementId      &
-              tOffaux==ElCodes$timeOffset     &
-              tResaux==ElCodes$timeResolution
+  aux<- aux & elIdaux==elementId      &
+              tOffaux==timeOffset     &
+              tResaux==timeResolution
   aux.nas<-T
   if (na.rm) aux.nas<-!is.na(frost_e$value_qcode[i,1])
   if ( any(aux) & aux.nas) {
@@ -532,7 +566,7 @@ update_frost_e<-function(x){
     }
   }
 } # END of FUN
-    if (is.null(frost_meta) & is.null(sources)) {
+    if (is.null(metaSens) & is.null(sources)) {
       print("ERROR a list of sources is needed to retrieve data")
       return(NULL)
     } else {
@@ -541,10 +575,10 @@ update_frost_e<-function(x){
           sourcesId<-sources
           rm(sources)
         } else {
-          sourcesId<-frost_meta$sourceId
+          sourcesId<-metaSens$sourceId
         }
       } else {
-        sourcesId<-frost_meta$sourceId
+        sourcesId<-metaSens$sourceId
       }
     }
     souIdstep<-65
@@ -587,7 +621,6 @@ update_frost_e<-function(x){
         # ERROR: frost is not happy with our request, or it is in a bad mood
         if (class(xs)=="try-error") return(NULL)
         if (xs$totalItemCount==0) next
-        print(xs$totalItemCount)
         # select observations according to na.rm and weather elements
         frost_e<-new.env()
         frost_e$value_qcode<-array(data=NA,dim=c(xs$totalItemCount,2))
@@ -608,11 +641,15 @@ update_frost_e<-function(x){
         rm(devnull)
         ix<-which(!is.na(frost_e$posok))
         if (length(ix)==0) next
+        op <- options(digits.secs = 3)
+        dates<-as.POSIXlt(str2Rdate(xs$data$referenceTime[ix],
+                                    format="%Y-%m-%dT%H:%M:%S"))
+        datesout<-Rdate2str(dates,formatOUT)
         if (!exists("frost_data")) {
-print("a")
+          dates_full<-dates
           frost_data<-data.frame(frost_e$elId[ix],
                            xs$data$sourceId[ix],
-                           xs$data$referenceTime[ix], 
+                           datesout, 
                            frost_e$value_qcode[ix,1],
                            frost_e$value_qcode[ix,2],
                            frost_e$tOff[ix],
@@ -622,11 +659,11 @@ print("a")
                            frost_e$oelId[ix],
                            stringsAsFactors=F)
         } else {
-print("b")
+          dates_full<-c(dates_full,dates)
           frost_data<-rbind(frost_data,
                       data.frame(frost_e$elId[ix],
                                  xs$data$sourceId[ix],
-                                 xs$data$referenceTime[ix], 
+                                 datesout, 
                                  frost_e$value_qcode[ix,1],
                                  frost_e$value_qcode[ix,2],
                                  frost_e$tOff[ix],
@@ -636,14 +673,14 @@ print("b")
                                  frost_e$oelId[ix],
                                  stringsAsFactors=F) )
         }
-        rm(frost_e)
+        rm(dates,datesout,frost_e)
       } # end loop over several queries
       if (!exists("frost_data")) {
         frost_data<-integer(0)
       } else {
         names(frost_data)<-c("elementId",
                              "sourceId",
-                             "referenceTime",
+                             "date_time",
                              "value",
                              "qcode",
                              "timeOffset",
@@ -686,9 +723,13 @@ print("b")
           frost_data<-integer(0)
         } else {
           op <- options(digits.secs = 3)
+          dates<-as.POSIXlt(str2Rdate(xs$data$referenceTime[ix],
+                                      format="%Y-%m-%dT%H:%M:%S"))
+          datesout<-Rdate2str(dates,formatOUT)
+          dates_full<-dates
           frost_data<-data.frame(frost_e$elId[ix],
                                  xs$data$sourceId[ix],
-                                 xs$data$referenceTime[ix], 
+                                 datesout, 
                                  frost_e$value_qcode[ix,1],
                                  frost_e$value_qcode[ix,2],
                                  frost_e$tOff[ix],
@@ -699,7 +740,7 @@ print("b")
                                  stringsAsFactors=F)
           names(frost_data)<-c("elementId",
                                "sourceId",
-                               "referenceTime",
+                               "date_time",
                                "value",
                                "qcode",
                                "timeOffset",
@@ -707,7 +748,7 @@ print("b")
                                "level",
                                "levelType",
                                "oldElementCodes")
-          rm(frost_e)
+          rm(dates,datesout,frost_e)
         }
       } else {
         frost_data<-integer(0)
@@ -715,57 +756,57 @@ print("b")
       rm(xs)
     } # END of data retrieve (one or more shots)
     # remove duplicates for daily data when needed
-#    if (any(frost_data$timeResolution=="P1D")) {
-#      aux<-frost_data$timeResolution=="P1D"
-#      day<-Rdate2str(dates_full,"%Y-%m-%d")
-#      hour<-Rdate2str(dates_full,"%H")
-#      # remove RR duplicates
-#      aux1<-aux & 
-#            frost_data$elementId=="sum(precipitation_amount P1D)" &
-#            hour %in% c("00","06") &
-#            frost_data$timeOffset=="PT06H"
-#      if (any(aux1)) {
-##        sou<-gsub(":","",gsub("SN","",)frost_data$sourceId)
-#        
-#        dupflag<-aux1 & duplicated(data.frame(frost_data$sourceId,
-#                                              day,
-#                                              frost_data$value,
-#                                              frost_data$qcode))
-#        if (any(dupflag)) {
-#          tmp<-frost_data
-#          rm(frost_data)
-#          ix<-which(!dupflag)
-#          frost_data<-data.frame(tmp$elementId[ix],
-#                                 tmp$sourceId[ix],
-#                                 tmp$referenceTime[ix], 
-#                                 tmp$value[ix],
-#                                 tmp$qcode[ix],
-#                                 tmp$timeOffset[ix],
-#                                 tmp$timeResolution[ix],
-#                                 tmp$level[ix],
-#                                 tmp$levelType[ix],
-#                                 tmp$oldElementCodes[ix],
-#                                 stringsAsFactors=F)
-#          names(frost_data)<-c("elementId",
-#                               "sourceId",
-#                               "referenceTime",
-#                               "value",
-#                               "qcode",
-#                               "timeOffset",
-#                               "timeResolution",
-#                               "level",
-#                               "levelType",
-#                               "oldElementCodes")
-#          rm(tmp)
-#        }
-#      }
-#    }
+    if (any(frost_data$timeResolution=="P1D")) {
+      aux<-frost_data$timeResolution=="P1D"
+      day<-Rdate2str(dates_full,"%Y-%m-%d")
+      hour<-Rdate2str(dates_full,"%H")
+      # remove RR duplicates
+      aux1<-aux & 
+            frost_data$elementId=="sum(precipitation_amount P1D)" &
+            hour %in% c("00","06") &
+            frost_data$timeOffset=="PT06H"
+      if (any(aux1)) {
+#        sou<-gsub(":","",gsub("SN","",)frost_data$sourceId)
+        
+        dupflag<-aux1 & duplicated(data.frame(frost_data$sourceId,
+                                              day,
+                                              frost_data$value,
+                                              frost_data$qcode))
+        if (any(dupflag)) {
+          tmp<-frost_data
+          rm(frost_data)
+          ix<-which(!dupflag)
+          frost_data<-data.frame(tmp$elementId[ix],
+                                 tmp$sourceId[ix],
+                                 tmp$date_time[ix], 
+                                 tmp$value[ix],
+                                 tmp$qcode[ix],
+                                 tmp$timeOffset[ix],
+                                 tmp$timeResolution[ix],
+                                 tmp$level[ix],
+                                 tmp$levelType[ix],
+                                 tmp$oldElementCodes[ix],
+                                 stringsAsFactors=F)
+          names(frost_data)<-c("elementId",
+                               "sourceId",
+                               "date_time",
+                               "value",
+                               "qcode",
+                               "timeOffset",
+                               "timeResolution",
+                               "level",
+                               "levelType",
+                               "oldElementCodes")
+          rm(tmp)
+        }
+      }
+    }
   # caso of doit.data=F
   } else {
     frost_data<-NULL
   }
   # Normal exit
   return(list(frost_data=frost_data,
-              frost_meta=frost_meta,
+              metaSens=metaSens,
               stationholders=sthold))
 }
