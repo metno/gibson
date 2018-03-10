@@ -177,6 +177,10 @@ frost<-gibson_frost(client_id=auth,oldElementCodes="RR", sources="ALL",start_dat
 # same as before but only for a smaller domain in southern Norway
 frost<-gibson_frost(client_id=auth,oldElementCodes="RR", sources="ALL",start_date="2018-03-01T08:00",stop_date="2018-03-04T13:00",format="\%Y-\%m-\%dT\%H:\%M",formatOUT="\%Y-\%m-\%dT\%H",countries="NO",spatial_extent=c(5,10,58,62))
 
+#--------------------------------------------------------------------
+# hourly total precipitation and daily mean temperature (06-06UTC) only for MET.NO stations
+frost<-gibson_frost(client_id=auth,oldElementCodes=c("RR_1","TAMRR"), sources="ALL",start_date="2018-03-02T08:00",stop_date="2018-03-04T13:00",format="\%Y-\%m-\%dT\%H:\%M",countries="NO",stationholders="MET.NO",url.show=T)
+
 }
 % at least one, from /Library/Frameworks/R.framework/Versions/2.1.1/Resources/doc
 \keyword{download, MET Norway, frost.met.no }

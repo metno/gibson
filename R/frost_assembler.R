@@ -1,12 +1,6 @@
 #+ get in-situ observations from frost.met.no
 `frost_assembler`<-function(client_id=NULL,
                             oldElementCodes=NULL,
-                            elementId=NULL,
-                            timeOffset=NULL,
-                            timeResolution=NULL,
-                            level.value=NULL,
-                            level.levelType=NULL,
-                            sources="ALL",
                             start_date=NULL,
                             stop_date=NULL,
                             format="%Y-%m-%dT%H:%M",
@@ -15,11 +9,7 @@
                             spatial_extent=c(4,34,54,72),
                             stationholders=NULL,
                             stationholders.exclude=F,
-                            doit.meta=T,
-                            doit.data=T,
                             WMOonly=F,
-                            try.again=1,
-                            sleep_sec=5,
                             na.rm=T,
                             url.show=F)
 {
@@ -41,6 +31,97 @@
 #------------------------------------------------------------------------------
 #
   require(jsonlite)
+#
+#------------------------------------------------------------------------------
+# Checks
+  if (is.null(oldElementCodes)) return(NULL)
+  if (any(oldElementCodes %in% c("RR_1","TA")) &
+      any(oldElementCodes %in% c("RR","TAM","TAMRR"))) {
+    print("ERROR it is not possible to mix data with hourly and daily sampling")
+    return(NULL)
+  }    
+#
+#------------------------------------------------------------------------------
+  # Retrieve data and metadata from the Frost API
+  res<-gibson_frost(client_id=client_id,
+                    oldElementCodes=oldElementCodes,
+                    elementId=NULL,
+                    timeOffset=NULL,
+                    timeResolution=NULL,
+                    level.value=NULL,
+                    level.levelType=NULL,
+                    sources="ALL",
+                    start_date=start_date,
+                    stop_date=stop_date,
+                    format=format,
+                    countries=countries,
+                    spatial_extent=spatial_extent,
+                    stationholders=stationholders,
+                    stationholders.exclude=stationholders.exclude,
+                    doit.meta=T,
+                    doit.data=T,
+                    WMOonly=WMOonly,
+                    try.again=3,
+                    sleep_sec=5,
+                    na.rm=na.rm,
+                    url.show=url.show)
+  if (is.null(res)) {
+    print("ERROR while retriving data")
+    return(NULL)
+  }
+#
+#------------------------------------------------------------------------------
+    # remove duplicates for daily data when needed
+    if (any(frost_data$timeResolution=="P1D")) {
+      aux<-frost_data$timeResolution=="P1D"
+      day<-Rdate2str(dates_full,"%Y-%m-%d")
+      hour<-Rdate2str(dates_full,"%H")
+      # remove RR duplicates
+      aux1<-aux & 
+            frost_data$elementId=="sum(precipitation_amount P1D)" &
+            hour %in% c("00","06") &
+            frost_data$timeOffset=="PT06H"
+      if (any(aux1)) {
+#        sou<-gsub(":","",gsub("SN","",)frost_data$sourceId)
+        
+        dupflag<-aux1 & duplicated(data.frame(frost_data$sourceId,
+                                              day,
+                                              frost_data$value,
+                                              frost_data$qcode))
+        if (any(dupflag)) {
+          tmp<-frost_data
+          rm(frost_data)
+          ix<-which(!dupflag)
+          frost_data<-data.frame(tmp$elementId[ix],
+                                 tmp$sourceId[ix],
+                                 tmp$date_time[ix], 
+                                 tmp$value[ix],
+                                 tmp$qcode[ix],
+                                 tmp$timeOffset[ix],
+                                 tmp$timeResolution[ix],
+                                 tmp$level[ix],
+                                 tmp$levelType[ix],
+                                 tmp$oldElementCodes[ix],
+                                 stringsAsFactors=F)
+          names(frost_data)<-c("elementId",
+                               "sourceId",
+                               "date_time",
+                               "value",
+                               "qcode",
+                               "timeOffset",
+                               "timeResolution",
+                               "level",
+                               "levelType",
+                               "oldElementCodes")
+          rm(tmp)
+        }
+      }
+    }
+
+
+
+#
+#------------------------------------------------------------------------------
   if (is.null(client_id)) {
     print("ERROR you are required to specify a client_id")
     print("see https://frost.met.no/concepts#getting_started")

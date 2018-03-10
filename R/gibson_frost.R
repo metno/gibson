@@ -106,14 +106,11 @@
                        paste(ElCodes$timeOffset,collapse=","),sep="")
   timeResolutionstr<-paste("timeresolutions=",
                            paste(ElCodes$timeResolution,collapse=","),sep="")
-  level.value<-ElCodes$level.value[which(!is.na(ElCodes$level.value))]
-  level.valuestr<-ifelse(length(level.value)>0,
-    paste("&levels=",paste(level.value,collapse=","),sep=""),"")
-  level.levelType<-ElCodes$level.levelType[which(
-     !is.na(ElCodes$level.levelType) & 
-     ElCodes$level.levelType!="")]
-  level.levelTypestr<-ifelse(length(level.levelType)>0,
-    paste("&levelTypes=",paste(level.levelType,collapse=","),sep=""),"")
+  level.valuestr<-ifelse(any(is.na(ElCodes$level.value)),
+   "",paste("&levels=",paste(ElCodes$level.value,collapse=","),sep=""))
+  level.levelTypestr<-ifelse(any( is.na(ElCodes$level.levelType) | 
+                                  ElCodes$level.levelType==""),
+   "",paste("&levelTypes=",paste(ElCodes$level.levelType,collapse=","),sep=""))
   # play with dates so that frost is happy
   formatFrost<-"%Y-%m-%dT%H:%M"
   if (format!=formatFrost) {
@@ -547,7 +544,6 @@ update_frost_e<-function(x){
         sourcesId<-frost_meta$sourceId
       }
     }
-    souIdstep<-65
     str1<-paste(str0,
                "/observations/v0.jsonld?",
                "fields=elementId,sourceId,value,referenceTime,qualityCode,",
@@ -568,6 +564,30 @@ update_frost_e<-function(x){
     # fromJSON refuses to work if the url has more than 1000 characters
     # 1000 is hard-coded in fromJSON
     if (nchar(url)>=1000) {
+      # choose the correct souIdstep
+      souIdstep<-70
+      for ( j in 1:100) {
+        souIdstep<-ifelse(souIdstep>5,souIdstep-5,souidstep-1)
+        if (souIdstep<1) break
+        flagOK<-T
+        for (i in 1:ceiling(nsouId/souIdstep)) {
+          i1<-(i-1)*souIdstep+1
+          i2<-min(i*souIdstep,nsouId)
+          if (i2<i1) break
+          sourcesIdstr1<-paste("&sources=", 
+                               paste(sourcesId[i1:i2],
+                               collapse=","),sep="")
+          url<-paste(str1,
+                     sourcesIdstr1,
+                     sep="")
+          if (nchar(url)>=1000) flagOK<-F
+        }
+        if (flagOK) break
+      }
+      if (souIdstep<1) {
+        print("ERROR while preparing the query")
+        return(NULL)
+      }
       for (i in 1:ceiling(nsouId/souIdstep)) {
         i1<-(i-1)*souIdstep+1
         i2<-min(i*souIdstep,nsouId)
@@ -587,7 +607,6 @@ update_frost_e<-function(x){
         # ERROR: frost is not happy with our request, or it is in a bad mood
         if (class(xs)=="try-error") return(NULL)
         if (xs$totalItemCount==0) next
-        print(xs$totalItemCount)
         # select observations according to na.rm and weather elements
         frost_e<-new.env()
         frost_e$value_qcode<-array(data=NA,dim=c(xs$totalItemCount,2))
@@ -609,7 +628,6 @@ update_frost_e<-function(x){
         ix<-which(!is.na(frost_e$posok))
         if (length(ix)==0) next
         if (!exists("frost_data")) {
-print("a")
           frost_data<-data.frame(frost_e$elId[ix],
                            xs$data$sourceId[ix],
                            xs$data$referenceTime[ix], 
@@ -622,7 +640,6 @@ print("a")
                            frost_e$oelId[ix],
                            stringsAsFactors=F)
         } else {
-print("b")
           frost_data<-rbind(frost_data,
                       data.frame(frost_e$elId[ix],
                                  xs$data$sourceId[ix],
@@ -714,52 +731,6 @@ print("b")
       }
       rm(xs)
     } # END of data retrieve (one or more shots)
-    # remove duplicates for daily data when needed
-#    if (any(frost_data$timeResolution=="P1D")) {
-#      aux<-frost_data$timeResolution=="P1D"
-#      day<-Rdate2str(dates_full,"%Y-%m-%d")
-#      hour<-Rdate2str(dates_full,"%H")
-#      # remove RR duplicates
-#      aux1<-aux & 
-#            frost_data$elementId=="sum(precipitation_amount P1D)" &
-#            hour %in% c("00","06") &
-#            frost_data$timeOffset=="PT06H"
-#      if (any(aux1)) {
-##        sou<-gsub(":","",gsub("SN","",)frost_data$sourceId)
-#        
-#        dupflag<-aux1 & duplicated(data.frame(frost_data$sourceId,
-#                                              day,
-#                                              frost_data$value,
-#                                              frost_data$qcode))
-#        if (any(dupflag)) {
-#          tmp<-frost_data
-#          rm(frost_data)
-#          ix<-which(!dupflag)
-#          frost_data<-data.frame(tmp$elementId[ix],
-#                                 tmp$sourceId[ix],
-#                                 tmp$referenceTime[ix], 
-#                                 tmp$value[ix],
-#                                 tmp$qcode[ix],
-#                                 tmp$timeOffset[ix],
-#                                 tmp$timeResolution[ix],
-#                                 tmp$level[ix],
-#                                 tmp$levelType[ix],
-#                                 tmp$oldElementCodes[ix],
-#                                 stringsAsFactors=F)
-#          names(frost_data)<-c("elementId",
-#                               "sourceId",
-#                               "referenceTime",
-#                               "value",
-#                               "qcode",
-#                               "timeOffset",
-#                               "timeResolution",
-#                               "level",
-#                               "levelType",
-#                               "oldElementCodes")
-#          rm(tmp)
-#        }
-#      }
-#    }
   # caso of doit.data=F
   } else {
     frost_data<-NULL
