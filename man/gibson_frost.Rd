@@ -2,30 +2,24 @@
 
 \alias{gibson_frost}
 
-\title{get data from frost.met.no}
+\title{get MET Norway in-situ data}
 
 \description{
-Retrieve metadata and observations from frost.met.no.
-The Frost API retrieve observations and metadata from the Climate Database (KDVH) of the Norwegian Meterological Institute (MET Norway or MET.NO).
-Frost documentation is available at frost.met.no.
+Download metadata and observations from the Climate Database (KDVH) of the Norwegian Meterological Institute (MET Norway or MET.NO) by using the Frost API (frost.met.no).
+In particular, this function has been implemented and tested for the download of hourly and diurnal data, though it can be used for other aggregation intervals too.
+The Frost documentation is available at frost.met.no.
 
-The KDVH contains in-situ observations measured by sensors located at stations belonging to several different station holders (not only "MET.NO").
+The KDVH contains in-situ data measured by the network of sensors located at stations belonging to several different station holders (not only "MET.NO").
 One station can belong to more than one station holder.
+It is possible to retrieve both the measurements and the post-processing of the measured values, together with the correspondent quality flags when available.
+The post-pocessing usually aggregates the measured values in different ways (mean/max/min/...) over different time intervals (hours/days/months/years/...). 
 
-The key used by frost is the data source identifier of an observation (sourceId). From the documentation on frost.met.no:  \\"The ID(s) of the data sources to get time series for as a comma-separated  list of Frost API station IDs: SN<int>[:<int>|all]  (e.g. SN18700, SN18700:0, or SN18700:all). 0 is the main sensor and x≥1 is a  parallel sensor.\\"
-The sourceId is not a unique key.
-In fact, for the same data source the observations stored in the KDVH are the raw measurements and the post-processed values.
-The post-pocessing usually aggregates the measured values in different ways over different time intervals (hours/days/months/years/...). 
-The time stamps associated to the observed values mark the end of the aggregation period. 
-The time zone assumed for the time stamps is UTC.
-The unique identifier of an observed value is the union of several piece of information. 
-For our purposes the following fields are used to build up the unique identifier: sourceId, elementId, timeOffset, timeResolution, level.value, level.levelType.
-The meaning of the different fields is described in the section on the function arguments.
+A single observed value returned by \code{gibson_fros} can be univocally identified by the union of several pieces of information, such as (for our purposes): sourceId, elementId, referenceTime, timeOffset, timeResolution, level.value, level.levelType.
+The sourceId identifies the station/sensor pair. The elementId specifies the meteorological or climate element (variable/aggregation pair). The triplets of referenceTime, timeOffset, timeResolution defines the observation timestamp (time standard is Coordinated Universal Time or UTC). The pair of level.value, level.levelType specifies at which level the observation has been taken (two-metre above the surface, 10-metre above the surface,...).
+For more information about the meaning of the different fields, refers also to the description of the function arguments.
 
-For convenience, it is possible to specify the Weather and Climate Elements needed also by using the old element codes (used before Frost).
+For convenience, it is possible to request the Weather and Climate Elements also by using their old element codes (in use before Frost).
 The available old codes are: \\"RR_1\\",\\"TA\\",\\"TAM\\",\\"TAMRR\\",\\"RR\\". 
-
-Some of the observations, either raw measurements or post-processed, collected in the KDVH are quality checked and the information is available through Frost.
 
 }
 
@@ -79,7 +73,7 @@ gibson_frost(client_id=NULL,
 
 \item{format}{charater string specifying the date-time format of start_date and stop_date (see \code{\link{strptime}} help page)}
 
-\item{formatOUT}{charater string specifying the date-time format desired for the the output (see strptime help page)}
+\item{formatOUT}{charater string specifying the date-time format desired for the the output (see \code{\link{strptime}} help page)}
 
 \item{countries}{character vector with the abbreviations of the countries. Only data sources located in those countries will be returned.}
 
@@ -106,9 +100,16 @@ gibson_frost(client_id=NULL,
 }
 
 \details{
-  \code{oldElementCodes} abbreviation meanings are: \\"RR_1\\" hourly total precipitation, \\"TA\\" two-metre air temperature / hourly sampling rate, \\"TAM\\" daily mean temperature (from 1800 UTC previous day to 1800 UTC observation day), \\"TAMRR\\" daily mean temperature (from 0600 UTC previous day to 0600 UTC observation day), \\"RR\\" daily total precipitation (from 0600 UTC previous day to 0600 UTC observation day). 
+\code{oldElementCodes} abbreviation meanings are: \\"RR_1\\" hourly total precipitation, \\"TA\\" two-metre air temperature / hourly sampling rate, \\"TAM\\" daily mean temperature (from 1800 UTC previous day to 1800 UTC observation day), \\"TAMRR\\" daily mean temperature (from 0600 UTC previous day to 0600 UTC observation day), \\"RR\\" daily total precipitation (from 0600 UTC previous day to 0600 UTC observation day). 
+
+\code{SourceId} is the data source identifier of an observation. From the documentation on frost.met.no:  \\"The ID(s) of the data sources to get time series for as a comma-separated  list of Frost API station IDs: SN<int>[:<int>|all]  (e.g. SN18700, SN18700:0, or SN18700:all). 0 is the main sensor and x≥1 is a  parallel sensor.\\"
+Remember that the \code{sourceId} is not a unique key.
 
 Frost API Response Messages (HTTP_Status_Code Reason)meaning: (400) Invalid parameter value or malformed request; (401) Unauthorized client ID; (404) No data was found for the list of query Ids; (500) Internal server error.
+
+Observation timestamp. This function returns the  \code{timeOffset}, \code{timeResolution}, \code{referenceTime} of an observation.
+For the hourly values, the \code{referenceTime} is also the observation timestamp and it mark the end of the aggregation time period.
+For diurnal data, the observation timestamp depends on the \code{elementId} and it is the result of an elaboration based on the three fields as described in the documentation of \code{\link{frost_assembler}}.
 }
 
 \value{
@@ -132,9 +133,9 @@ The quality code meanings are available at this link \link{https://frost.met.no/
 
 \author{ Cristian Lussana }
 
-\note{ }
+\note{ MET Norway Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons 4.0 BY Internasjonal \link{https://www.met.no/en/free-meteorological-data}.}
 
-\seealso{ }
+\seealso{ \code{\link{frost_assembler}}}
 
 \examples{
 
@@ -179,5 +180,5 @@ frost<-gibson_frost(client_id="3435de13-091f-4a74-99e8-18c71cef7d97",oldElementC
 
 }
 % at least one, from /Library/Frameworks/R.framework/Versions/2.1.1/Resources/doc
-\keyword{ observation, frost.met.no }
+\keyword{download, MET Norway, frost.met.no }
 
