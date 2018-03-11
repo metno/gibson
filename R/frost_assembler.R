@@ -71,6 +71,14 @@
   }
 #
 #------------------------------------------------------------------------------
+# remove duplicates, if needed (return and index with the position to keep)
+#frost_removeDuplicates()
+# convert coordinates
+#crs_transform()
+# create the timestamp out of timeResolution,timeOffset,referenceTime
+#frost_create_ObsTimestamp()
+# assembly output
+ 
     # remove duplicates for daily data when needed
     if (any(frost_data$timeResolution=="P1D")) {
       aux<-frost_data$timeResolution=="P1D"
