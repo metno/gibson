@@ -6,7 +6,6 @@
 }
 \usage{
 replaceDate(string=NULL, date.str=NULL, format = "\%Y-\%m-\%d \%H:\%M:\%S")
-
 }
 \arguments{
   \item{string}{a string with the elements to replace with the date and time elements. For example, if the string "yyyy/yyyymmdd" is provided then yyyy will be replaced with the year, mm with the month and dd with the day. Legend: yyyy year; mm month; dd day; hh hour.}

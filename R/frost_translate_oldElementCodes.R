@@ -48,7 +48,7 @@
               },
       "TAM" = {  
        ElementCodes$elementId[i]="mean(air_temperature P1D)"
-       ElementCodes$timeOffset[i]="PT18H"
+       ElementCodes$timeOffset[i]="PT00H"
        ElementCodes$timeResolution[i]="P1D"
        ElementCodes$level.value[i]=2
        ElementCodes$level.levelType[i]="height_above_ground"
