@@ -270,10 +270,8 @@
   }    
 #------------------------------------------------------------------------------
   if (exists("out")) {
-save(out,res,timestamp,file="tmp")
     return(out)
   } else {
-save(res,timestamp,file="tmp")
     return(NULL)
   }
 }
