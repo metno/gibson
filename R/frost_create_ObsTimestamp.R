@@ -19,7 +19,7 @@
                         class=c("POSIXct", "POSIXt") )
   # hourly elements has timestamp equal to referenceTime
   ix<-which(frost_data$timeResolution=="PT1H")
-  if (length(ix)>0) timestamp[ix]<-referenceTime
+  if (length(ix)>0) timestamp[ix]<-referenceTime[ix]
   # daily
   ix<-which(frost_data$timeResolution=="P1D")
   if (length(ix)>0) {
