@@ -18,10 +18,6 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #------------------------------------------------------------------------------
   if (is.null(oldElementCodes)) return(NULL)
-  setOK<-c("RR_1","TA","TAM","TAMRR","RR")
-  if ( any( is.na(oldElementCodes) |
-            !(oldElementCodes %in% setOK) ) )
-    return(NULL)
   nEl<-length(oldElementCodes)
   ElementCodes<-data.frame(
     elementId=vector(mode="character",length=nEl),
@@ -66,8 +62,73 @@
        ElementCodes$timeResolution[i]="P1D"
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
-              })
-  } # END for
+              },
+       "FF" = {  
+       ElementCodes$elementId[i]="wind_speed"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=10
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "PR" = {  
+       ElementCodes$elementId[i]="air_pressure_at_sea_level"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=NA
+       ElementCodes$level.levelType[i]=""
+              },
+       "DG" = {  
+       ElementCodes$elementId[i]="wind_from_direction_of_gust"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=10
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "DD" = {  
+       ElementCodes$elementId[i]="wind_from_direction"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=10
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "FG" = {  
+       ElementCodes$elementId[i]="wind_speed_of_gust"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=10
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "TAN" = {  
+       ElementCodes$elementId[i]="min(air_temperature P1D)"
+       ElementCodes$timeOffset[i]="PT18H"
+       ElementCodes$timeResolution[i]="P1D"
+       ElementCodes$level.value[i]=2
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "TAX" = {  
+       ElementCodes$elementId[i]="max(air_temperature P1D)"
+       ElementCodes$timeOffset[i]="PT18H"
+       ElementCodes$timeResolution[i]="P1D"
+       ElementCodes$level.value[i]=2
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
+       "UU" = {  
+       ElementCodes$elementId[i]="relative_humidity"
+       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeResolution[i]="PT1H"
+       ElementCodes$level.value[i]=NA
+       ElementCodes$level.levelType[i]=""
+              },
+       # default: element is not defined
+       {
+       ElementCodes$elementId[i]=""
+       ElementCodes$timeOffset[i]=""
+       ElementCodes$timeResolution[i]=""
+       ElementCodes$level.value[i]=NA
+       ElementCodes$level.levelType[i]=""
+       }
+    ) # END of switch
+  } # END FOR
   ElementCodes
 }
   

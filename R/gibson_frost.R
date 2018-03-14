@@ -40,6 +40,9 @@
 #------------------------------------------------------------------------------
 #
   suppressPackageStartupMessages(require(jsonlite))
+#
+#------------------------------------------------------------------------------
+# Checks
   if (is.null(client_id)) {
     print("ERROR you are required to specify a client_id")
     print("see https://frost.met.no/concepts#getting_started")
@@ -68,14 +71,7 @@
           " elementId,timeOffset,timeResolution,level.value,level.levelType "))
     return(NULL)
   }
-#  oldElementCodesAvail<-c("RR_1","TA","TAM","TAMRR","RR")
-#  if ( !is.null(oldElementCodes)) {
-#    if (any(!oldElementCodes %in% oldElementCodesAvail)) {
-#      print("ERROR oldElementCodes must be one of")
-#      print(oldElementCodesAvail)
-#      return(NULL)
-#    }
-#  } 
+#
 #------------------------------------------------------------------------------
 # string initialization
   str0<-paste("https://",client_id,"@frost.met.no",sep="")
@@ -90,6 +86,11 @@
   # Weather and Climate Elements
   if (!is.null(oldElementCodes)) {
     ElCodes<-frost_translate_oldElementCodes(oldElementCodes)
+    if (any(ElCodes$elementId=="")) {
+      print("ERROR at least one oldElementCodes is not available in gibson")
+      print(ElCodes$oldElementCodes[which(ElCodes$elementId=="")])
+      return(NULL)
+    }
   } else {
     ElCodes<-data.frame(elementId,
                         timeOffset,

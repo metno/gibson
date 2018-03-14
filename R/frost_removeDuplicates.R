@@ -15,11 +15,8 @@
 #  You should have received a copy of the GNU General Public License  
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #------------------------------------------------------------------------------
-  # in case the element does not have duplicates
-  if (oldElementCode %in% c("RR_1","TA","TAMRR","TAM")) {
-    ixNoDup<-1:length(frost_data$value)
   # case of RR
-  }  else if (oldElementCode=="RR") {
+  if (oldElementCode=="RR") {
     referenceTime<-as.POSIXlt(str2Rdate(frost_data$referenceTime,
                                         format="%Y-%m-%dT%H:%M:%S"))
     day<-Rdate2str(referenceTime,"%Y-%m-%d")
@@ -36,6 +33,9 @@
                                    frost_data$value,
                                    stringsAsFactors=F))
     ixNoDup<-which(!dupflag)
+  # in case the element does not have duplicates
+  } else {
+    ixNoDup<-1:length(frost_data$value)
   }
   ixNoDup
 }

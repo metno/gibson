@@ -68,7 +68,7 @@ frost_assembler(client_id=NULL,
 }
 
 \details{
-\code{oldElementCodes} abbreviation meanings are: \\"RR_1\\" hourly total precipitation, \\"TA\\" two-metre air temperature / hourly sampling rate, \\"TAM\\" daily mean temperature (from 1800 UTC previous day to 1800 UTC observation day), \\"TAMRR\\" daily mean temperature (from 0600 UTC previous day to 0600 UTC observation day), \\"RR\\" daily total precipitation (from 0600 UTC previous day to 0600 UTC observation day). 
+\code{oldElementCodes} abbreviations are listed at \link{https://frost.met.no/elementtable}. Not all abbreviations have been implemented (see \code{\link{frost_translate_oldElementCodes}}).
 
 It is not possible to mix variables with hourly time resolution and variables with daily time resolution.
 
@@ -99,7 +99,7 @@ The column names are: \code{timestamp} (end of the aggregation period), \code{so
 
 \author{ Cristian Lussana }
 
-\note{The R-packages  \code{\link{sp}} and \code{\link{rgdal} are needed for the coordinate conversions.}
+\note{The R-packages  \code{\link{sp}} and \code{\link{rgdal}} are needed for the coordinate conversions.}
 
 \seealso{ \code{\link{gibson_frost}} \code{\link{crs_transform}} }
 
@@ -111,7 +111,7 @@ library(gibson)
 auth<-put_your_ClientID_here
 # get hourly precipitation and temperature for all Norwegian stations, add coordinates
 #  transformed over several CRSs
-d<-frost_assembler(client_id=auth,oldElementCodes=c("RR_1","TA"),start_date="2018-03-08T01:00",stop_date= "2018-03-10T01:00",format="%Y-%m-%dT%H:%M",formatOUT="%Y-%m-%dT%H",countries="NO",spatial_extent=c(4,34,54,72),stationholders=NULL,stationholders.exclude=F,WMOonly=F,na.rm=T,url.show=T,coord=data.frame(x=c("lon","x_lcc","x_utm33","x_laea"),y=c("lat","y_lcc","y_utm33","y_laea"),proj4=c("+proj=longlat +datum=WGS84","+proj=lcc +lat_0=48 +lon_0=8 +lat_1=48  +lat_2=48 +a=6371229 +no_defs","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0","+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"),stringsAsFactors=F),verbose=T)
+d<-frost_assembler(client_id=auth,oldElementCodes=c("RR_1","TA"),start_date="2018-03-08T01:00",stop_date= "2018-03-10T01:00",format="\%Y-\%m-\%dT\%H:\%M",formatOUT="\%Y-\%m-\%dT\%H",countries="NO",spatial_extent=c(4,34,54,72),stationholders=NULL,stationholders.exclude=F,WMOonly=F,na.rm=T,url.show=T,coord=data.frame(x=c("lon","x_lcc","x_utm33","x_laea"),y=c("lat","y_lcc","y_utm33","y_laea"),proj4=c("+proj=longlat +datum=WGS84","+proj=lcc +lat_0=48 +lon_0=8 +lat_1=48  +lat_2=48 +a=6371229 +no_defs","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0","+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs"),stringsAsFactors=F),verbose=T)
 
 }
 % at least one, from /Library/Frameworks/R.framework/Versions/2.1.1/Resources/doc

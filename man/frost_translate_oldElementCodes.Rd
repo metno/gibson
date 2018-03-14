@@ -14,11 +14,11 @@ frost_translate_oldElementCodes<-function(oldElementCodes=NULL)
 }
 
 \arguments{
-\item{oldElementCodes}{character vector with the abbreviations used to define weather and climate elements (before Frost-era). Available abbreviations are: \\"RR_1\\",\\"TA\\",\\"TAM\\",\\"TAMRR\\",\\"RR\\". See Details for more information or \link{https://frost.met.no/elementtable}.}
+\item{oldElementCodes}{character vector with the abbreviations used to define weather and climate elements (before Frost-era). The abbreviations are listed at \link{https://frost.met.no/elementtable}.}
 }
 
 \details{
-\code{oldElementCodes} abbreviation meanings are: \\"RR_1\\" hourly total precipitation, \\"TA\\" two-metre air temperature / hourly sampling rate, \\"TAM\\" daily mean temperature (from 1800 UTC previous day to 1800 UTC observation day), \\"TAMRR\\" daily mean temperature (from 0600 UTC previous day to 0600 UTC observation day), \\"RR\\" daily total precipitation (from 0600 UTC previous day to 0600 UTC observation day). 
+In case an abbreviations is not yet implemented in \code{\link{gibson}} then the \code{elementId} character string is set to \code{""}.
 }
 
 \value{

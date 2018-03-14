@@ -17,7 +17,8 @@ frost_removeDuplicates(oldElementCode=NULL,
 }
 
 \arguments{
-\item{oldElementCode}{character vector with the abbreviations used to define weather and climate elements (before Frost-era). Available abbreviations are: \\"RR_1\\",\\"TA\\",\\"TAM\\",\\"TAMRR\\",\\"RR\\". See Details for more information or \link{https://frost.met.no/elementtable}.}
+\code{oldElementCodes} abbreviations are listed at \link{https://frost.met.no/elementtable}.
+Not all abbreviations have been implemented (see \code{\link{frost_translate_oldElementCodes}}).
 
 \item{frost_data}{the data frame frost_data returned by \code{gibson_frost}}
 }

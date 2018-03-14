@@ -1,5 +1,4 @@
-`frost_create_ObsTimestamp`<-function(oldElementCode=NULL,
-                                      frost_data=NULL){
+`frost_create_ObsTimestamp`<-function(frost_data=NULL){
 #------------------------------------------------------------------------------
 #  This file is free software: you may copy, redistribute and/or modify it  
 #  under the terms of the GNU General Public License as published by the  
@@ -16,16 +15,23 @@
 #------------------------------------------------------------------------------
   referenceTime<-as.POSIXlt(str2Rdate(frost_data$referenceTime,
                                       format="%Y-%m-%dT%H:%M:%S"),tzone="UTC")
+  timestamp<-structure( rep(NA_real_,length(referenceTime)),
+                        class=c("POSIXct", "POSIXt") )
   # hourly elements has timestamp equal to referenceTime
-  if (oldElementCode %in% c("RR_1","TA")) {
-    timestamp<-referenceTime
-  # daily elements 
-  }  else if (oldElementCode %in% c("RR","TAMRR","TAM")) {
-    day<-Rdate2str(referenceTime,"%Y-%m-%d")
-    referenceTime<-as.POSIXlt(str2Rdate(paste(day,"-",rep("00",length(day)),sep=""),
-                                      format="%Y-%m-%d-%H"),tzone="UTC")
-    timeOffset<-as.numeric(substr(frost_data$timeOffset,3,4))
-    timestamp<-referenceTime+as.difftime(timeOffset, unit="hours")
+  ix<-which(frost_data$timeResolution=="PT1H")
+  if (length(ix)>0) timestamp[ix]<-referenceTime
+  # daily
+  ix<-which(frost_data$timeResolution=="P1D")
+  if (length(ix)>0) {
+    day<-Rdate2str(referenceTime[ix],"%Y-%m-%d")
+    referenceTime[ix]<-as.POSIXlt(
+                        str2Rdate(paste(day,"-",rep("00",length(day)),sep=""),
+                                        format="%Y-%m-%d-%H"),tzone="UTC")
+    timeOffset<-as.numeric(substr(frost_data$timeOffset[ix],3,4))
+    timestamp[ix]<-referenceTime[ix]+as.difftime(timeOffset, unit="hours")
+    rm(day,timeOffset)
   }
+  #...
+  # return
   timestamp
 }

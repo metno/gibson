@@ -19,7 +19,6 @@ The \code{sourceId} identifies the station/sensor pair. The \code{elementId} spe
 For more information about the meaning of the different fields, refers also to the description of the \code{gibson_frost} arguments.
 
 For convenience, it is possible to request the Weather and Climate Elements also by using their old element codes (in use before Frost).
-The available abbrevations are: \\"RR_1\\",\\"TA\\",\\"TAM\\",\\"TAMRR\\",\\"RR\\". 
 
 Have a look to \code{\link{frost_assembler}} to find examples on how to post-process \code{gibson_frost} results in order to obtain the desired output.
 }
@@ -53,7 +52,7 @@ gibson_frost(client_id=NULL,
 
 \item{client_id}{character string with the API Client ID \link{https://frost.met.no/auth/requestCredentials.html}}
 
-\item{oldElementCodes}{character vector with the abbreviations used to define weather and climate elements (before Frost-era). Available abbreviations are: \\"RR_1\\",\\"TA\\",\\"TAM\\",\\"TAMRR\\",\\"RR\\". See Details for more information or \link{https://frost.met.no/elementtable}.}
+\item{oldElementCodes}{character vector with the abbreviations used to define weather and climate elements (before Frost-era). See Details for more information or \link{https://frost.met.no/elementtable}.}
 
 \item{elementId}{character vector with Weather and Climate Elements Id \link{https://frost.met.no/elementtable}}
 
@@ -98,7 +97,7 @@ gibson_frost(client_id=NULL,
 }
 
 \details{
-\code{oldElementCodes} abbreviation meanings are: \\"RR_1\\" hourly total precipitation, \\"TA\\" two-metre air temperature / hourly sampling rate, \\"TAM\\" daily mean temperature (from 1800 UTC previous day to 1800 UTC observation day), \\"TAMRR\\" daily mean temperature (from 0600 UTC previous day to 0600 UTC observation day), \\"RR\\" daily total precipitation (from 0600 UTC previous day to 0600 UTC observation day). 
+\code{oldElementCodes} abbreviations are listed at \link{https://frost.met.no/elementtable}. Not all abbreviations have been implemented (see \code{\link{frost_translate_oldElementCodes}}).
 
 \code{SourceId} is the data source identifier of an observation. From the documentation on frost.met.no:  \\"The ID(s) of the data sources to get time series for as a comma-separated  list of Frost API station IDs: SN<int>[:<int>|all]  (e.g. SN18700, SN18700:0, or SN18700:all). 0 is the main sensor and x≥1 is a  parallel sensor.\\"
 Remember that the \code{sourceId} is not a unique key.

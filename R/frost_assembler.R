@@ -15,8 +15,7 @@
                             coords=data.frame(x="lon",y="lat",
                                    proj4="+proj=longlat +datum=WGS84",
                                    stringsAsFactors=F),
-                            verbose=F
-                            )
+                            verbose=F)
 {
 #------------------------------------------------------------------------------
 # Documentation:see help(frost_assembler) on R or gibson/man/frost_assembler.Rd
@@ -42,9 +41,19 @@
 #------------------------------------------------------------------------------
 # Checks
   if (is.null(oldElementCodes)) return(NULL)
-  if (any(oldElementCodes %in% c("RR_1","TA")) &
-      any(oldElementCodes %in% c("RR","TAM","TAMRR"))) {
+
+  ElCodes<-frost_translate_oldElementCodes(oldElementCodes)
+  if (any(ElCodes$elementId=="")) {
+    print("ERROR at least one oldElementCodes is not available in gibson")
+    print(ElCodes$oldElementCodes[which(ElCodes$elementId=="")])
+    return(NULL)
+  }
+  if ( any(ElCodes$timeResolution=="P1D") &
+       any(ElCodes$timeResolution=="PT1H") |
+       any(ElCodes$timeResolution!="PT1H" & 
+           ElCodes$timeResolution!="P1D") ) {
     print("ERROR it is not possible to mix data with hourly and daily sampling")
+    print("      OR it has been specified a non-valid aggregation time")
     return(NULL)
   }
   #
@@ -177,10 +186,11 @@
   for (i in 1:noldElementCodes) {
     ix<-which(res$frost_data$oldElementCodes==oldElementCodes[i])
     if (length(ix)==0) next
-    timestamp[ix]<-frost_create_ObsTimestamp(oldElementCodes[i],
+    timestamp[ix]<-frost_create_ObsTimestamp(
               frost_data=data.frame(
                referenceTime=res$frost_data$referenceTime[ix],
                timeOffset=res$frost_data$timeOffset[ix],
+               timeResolution=res$frost_data$timeResolution[ix],
                stringsAsFactors=F) )
   }
   rm(ix)
@@ -199,17 +209,24 @@
                oldElementCodes[v],paste(oldElementCodes[v],"_qcode",sep=""))
     }
   }
-  unit<-ifelse(oldElementCodes[1] %in% c("RR_1","TA"),"hours","days")
+  unit<-ifelse(ElCodes$timeResolution[1]=="PT1H","hours","days")
   timestampSeq<-createTimeSeq(start_date=start_date,
                               stop_date=stop_date,
                               format=format,
                               time_step=1,
                               unit=unit,
                               RdateOnlyOut=T)
+  if (unit=="hours") {
+    timestamp_for<-format(timestamp,format="%Y%m%d%H",tz="UTC")
+    timestampSeq_for<-format(timestampSeq,format="%Y%m%d%H",tz="UTC")
+  } else {
+    timestamp_for<-format(timestamp,format="%Y%m%d",tz="UTC")
+    timestampSeq_for<-format(timestampSeq,format="%Y%m%d",tz="UTC")
+  }
   for (t in 1:length(timestampSeq)) {
     ix_tmp<-integer(0)
     for (v in 1:noldElementCodes)
-      ix_tmp<-c(ix_tmp,which(timestamp==timestampSeq[t] & 
+      ix_tmp<-c(ix_tmp,which(timestamp_for==timestampSeq_for[t] & 
                            res$frost_data$oldElementCodes==oldElementCodes[v]))
     if (length(ix_tmp)==0) next
     ix<-unique(ix_tmp)
@@ -221,7 +238,7 @@
     if (nmeta_tmp==0) next
     value_qcode<-array(data=NA,dim=c(nmeta_tmp,(2*noldElementCodes)))
     for (v in 1:noldElementCodes) {
-      ix_tmp<-which(timestamp==timestampSeq[t] & 
+      ix_tmp<-which(timestamp_for==timestampSeq_for[t] & 
                     res$frost_data$oldElementCodes==oldElementCodes[v])
       if (length(ix_tmp)==0) next
       match<-match(res$frost_meta$sourceId[ixIn],res$frost_data$sourceId[ix_tmp])
