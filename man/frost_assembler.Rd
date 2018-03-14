@@ -77,6 +77,7 @@ It is not possible to mix variables with hourly time resolution and variables wi
 The coordinate reference systems (CRS) are specified by means of proj4 strings \link{http://proj4.org/}. A list of proj4 string can be found at \link{http://spatialreference.org/}.
 Further details on the coordinate conversion can be found at \code{\link{crs_transform}}.
 It is possible to specify more than one CRS to be included in the output.
+The coordinate transformation is based on functions available through the packages \code{\link{sp}}, \code{\link{rgdal}}.
 
 The output variables have the same names of the \code{oldElementCodes} and the KDVH quality codes are also returned.
 The quality code meanings are available at this link \link{https://frost.met.no/observations/availableQualityCodes/v0.jsonld?lang=nb-NO}.
@@ -98,7 +99,7 @@ The column names are: \code{timestamp} (end of the aggregation period), \code{so
 
 \author{ Cristian Lussana }
 
-\note{ }
+\note{The R-packages  \code{\link{sp}} and \code{\link{rgdal} are needed for the coordinate conversions.}
 
 \seealso{ \code{\link{gibson_frost}} \code{\link{crs_transform}} }
 
