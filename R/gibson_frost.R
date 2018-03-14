@@ -39,7 +39,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #------------------------------------------------------------------------------
 #
-  require(jsonlite)
+  suppressPackageStartupMessages(require(jsonlite))
   if (is.null(client_id)) {
     print("ERROR you are required to specify a client_id")
     print("see https://frost.met.no/concepts#getting_started")
@@ -101,16 +101,16 @@
   # replace white spaces with %20, so that url works 
   elementIdMod<-gsub(" ","%20",ElCodes$elementId)
   elementIdstr<-paste("elements=",
-                      paste(elementIdMod,collapse=","),sep="")
+                      paste(unique(elementIdMod),collapse=","),sep="")
   timeOffsetstr<-paste("timeoffsets=",
-                       paste(ElCodes$timeOffset,collapse=","),sep="")
+                       paste(unique(ElCodes$timeOffset),collapse=","),sep="")
   timeResolutionstr<-paste("timeresolutions=",
-                           paste(ElCodes$timeResolution,collapse=","),sep="")
+                           paste(unique(ElCodes$timeResolution),collapse=","),sep="")
   level.valuestr<-ifelse(any(is.na(ElCodes$level.value)),
-   "",paste("&levels=",paste(ElCodes$level.value,collapse=","),sep=""))
+   "",paste("&levels=",paste(unique(ElCodes$level.value),collapse=","),sep=""))
   level.levelTypestr<-ifelse(any( is.na(ElCodes$level.levelType) | 
                                   ElCodes$level.levelType==""),
-   "",paste("&levelTypes=",paste(ElCodes$level.levelType,collapse=","),sep=""))
+   "",paste("&levelTypes=",paste(unique(ElCodes$level.levelType),collapse=","),sep=""))
   # play with dates so that frost is happy
   formatFrost<-"%Y-%m-%dT%H:%M"
   if (format!=formatFrost) {
@@ -264,7 +264,7 @@
       } # end IF query for metadata 
     # sources are specified as a vector of characters
     } else {
-      sourcesstr<-paste("&sources=",paste(sources,collapse=","),sep="")
+      sourcesstr<-paste("&sources=",paste(unique(sources),collapse=","),sep="")
       url<-paste(str1,sources,sep="")
       if (url.show) print(url)
       for (k in 1:try.again) {
@@ -321,7 +321,7 @@
     # ERROR: for some reasons we always got 0 data from frost
     if (!exists("metaStat")) return(NULL)
     nsou<-length(metaStat$id)
-    sourcesstr<-paste("&sources=", paste(metaStat$id,collapse=","),sep="")
+    sourcesstr<-paste("&sources=", paste(unique(metaStat$id),collapse=","),sep="")
     #
     # selection based on the station holder
     if (!is.null(stationholders)) {
@@ -488,44 +488,50 @@
   if (doit.data) {
 #+ update variables in the frost_e environment
 update_frost_e<-function(x){
-  i<-as.numeric(x[2])
-  frost_e$value_qcode[i,1]<-ifelse(is.null(x[[1]]$value),
-                     NA,as.numeric(x[[1]]$value))
-  frost_e$value_qcode[i,2]<-ifelse(is.null(x[[1]]$qualityCode),
-                     NA,as.numeric(x[[1]]$qualityCode))
-  levaux<-ifelse(is.null(x[[1]]$level.value),
-           NA,x[[1]]$level.value)
-  levTaux<-ifelse(is.null(x[[1]]$level.levelType),
-            "",x[[1]]$level.levelType)
-  elIdaux<-ifelse(is.null(x[[1]]$elementId),
-            "",x[[1]]$elementId)   
-  tOffaux<-ifelse(is.null(x[[1]]$timeOffset),
-            "",x[[1]]$timeOffset)
-  tResaux<-ifelse(is.null(x[[1]]$timeResolution),
-            "",x[[1]]$timeResolution)
-  if (!is.na(levaux) & levTaux!="") {
-    aux<-levaux==ElCodes$level.value &
-         levTaux==ElCodes$level.levelType
-  } else {
-    aux<-rep(T,length=length(ElCodes$elementId))
-  }
-  aux<- aux & elIdaux==ElCodes$elementId      &
-              tOffaux==ElCodes$timeOffset     &
-              tResaux==ElCodes$timeResolution
-  aux.nas<-T
-  if (na.rm) aux.nas<-!is.na(frost_e$value_qcode[i,1])
-  if ( any(aux) & aux.nas) {
-    frost_e$posok[i]<-i
-    frost_e$elId[i]<-elIdaux
-    frost_e$tOff[i]<-tOffaux
-    frost_e$tRes[i]<-tResaux
+  l<-as.numeric(x[2])
+  for (i in 1:length(x[[1]]$value)) {
+    frost_e$i<-frost_e$i+1
+    j<-frost_e$i
+    frost_e$value_qcode[j,1]<-ifelse(is.null(x[[1]]$value[i]),
+                       NA,as.numeric(x[[1]]$value[i]))
+    frost_e$value_qcode[j,2]<-ifelse(is.null(x[[1]]$qualityCode[i]),
+                       NA,as.numeric(x[[1]]$qualityCode[i]))
+    levaux<-ifelse(is.null(x[[1]]$level.value[i]),
+             NA,x[[1]]$level.value[i])
+    levTaux<-ifelse(is.null(x[[1]]$level.levelType[i]),
+              "",x[[1]]$level.levelType[i])
+    elIdaux<-ifelse(is.null(x[[1]]$elementId[i]),
+              "",x[[1]]$elementId[i])   
+    tOffaux<-ifelse(is.null(x[[1]]$timeOffset[i]),
+              "",x[[1]]$timeOffset[i])
+    tResaux<-ifelse(is.null(x[[1]]$timeResolution[i]),
+              "",x[[1]]$timeResolution[i])
     if (!is.na(levaux) & levTaux!="") {
-      frost_e$lev[i]<-levaux 
-      frost_e$levT[i]<-levTaux
-    } 
-    if (!is.null(oldElementCodes)) {
-      j<-which(aux)
-      frost_e$oelId[i]<-oldElementCodes[j]
+      aux<-levaux==ElCodes$level.value &
+           levTaux==ElCodes$level.levelType
+    } else {
+      aux<-rep(T,length=length(ElCodes$elementId))
+    }
+    aux<- aux & elIdaux==ElCodes$elementId      &
+                tOffaux==ElCodes$timeOffset     &
+                tResaux==ElCodes$timeResolution
+    aux.nas<-T
+    if (na.rm) aux.nas<-!is.na(frost_e$value_qcode[j,1])
+    if ( any(aux) & aux.nas) {
+      frost_e$posok[j]<-j
+      frost_e$soId[j]<-xs$data$sourceId[[l]]
+      frost_e$tRef[j]<-xs$data$referenceTime[[l]]
+      frost_e$elId[j]<-elIdaux
+      frost_e$tOff[j]<-tOffaux
+      frost_e$tRes[j]<-tResaux
+      if (!is.na(levaux) & levTaux!="") {
+        frost_e$lev[j]<-levaux 
+        frost_e$levT[j]<-levTaux
+      } 
+      if (!is.null(oldElementCodes)) {
+        k<-which(aux)
+        frost_e$oelId[j]<-oldElementCodes[k]
+      }
     }
   }
 } # END of FUN
@@ -556,7 +562,7 @@ update_frost_e<-function(x){
                "&",datestr,
                sep="")
     sourcesIdstr<-paste("&sources=",
-                      paste(sourcesId,collapse=","),sep="")
+                      paste(unique(sourcesId),collapse=","),sep="")
     url<-paste(str1,
                sourcesIdstr,
                sep="")
@@ -575,7 +581,7 @@ update_frost_e<-function(x){
           i2<-min(i*souIdstep,nsouId)
           if (i2<i1) break
           sourcesIdstr1<-paste("&sources=", 
-                               paste(sourcesId[i1:i2],
+                               paste(unique(sourcesId[i1:i2]),
                                collapse=","),sep="")
           url<-paste(str1,
                      sourcesIdstr1,
@@ -593,7 +599,7 @@ update_frost_e<-function(x){
         i2<-min(i*souIdstep,nsouId)
         if (i2<i1) break
         sourcesIdstr1<-paste("&sources=", 
-                             paste(sourcesId[i1:i2],
+                             paste(unique(sourcesId[i1:i2]),
                              collapse=","),sep="")
         url<-paste(str1,
                    sourcesIdstr1,
@@ -607,20 +613,28 @@ update_frost_e<-function(x){
         # ERROR: frost is not happy with our request, or it is in a bad mood
         if (class(xs)=="try-error") return(NULL)
         if (xs$totalItemCount==0) next
+        totalItemCount<-0
+        for (i in 1:xs$totalItemCount)
+          totalItemCount<-totalItemCount+length(xs$data$observations[[i]][,1])
         # select observations according to na.rm and weather elements
         frost_e<-new.env()
-        frost_e$value_qcode<-array(data=NA,dim=c(xs$totalItemCount,2))
-        frost_e$posok<-vector(mode="numeric",length=xs$totalItemCount)
-        frost_e$elId<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$tOff<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$tRes<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$lev<-vector(mode="numeric",length=xs$totalItemCount)
-        frost_e$levT<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$oelId<-vector(mode="character",length=xs$totalItemCount)
+        frost_e$value_qcode<-array(data=NA,dim=c(totalItemCount,2))
+        frost_e$posok<-vector(mode="numeric",length=totalItemCount)
+        frost_e$elId<-vector(mode="character",length=totalItemCount)
+        frost_e$soId<-vector(mode="character",length=totalItemCount)
+        frost_e$tOff<-vector(mode="character",length=totalItemCount)
+        frost_e$tRes<-vector(mode="character",length=totalItemCount)
+        frost_e$tRef<-vector(mode="character",length=totalItemCount)
+        frost_e$lev<-vector(mode="numeric",length=totalItemCount)
+        frost_e$levT<-vector(mode="character",length=totalItemCount)
+        frost_e$oelId<-vector(mode="character",length=totalItemCount)
         frost_e$posok[]<-NA
         frost_e$lev[]<-NA        
         frost_e$levT[]<-""
         frost_e$oelId[]<-""
+        frost_e$soId[]<-""
+        frost_e$tRef[]<-""
+        frost_e$i<-0
         devnull<-apply(cbind(xs$data$observations,1:xs$totalItemCount),
                        MARGIN=1,
                        FUN=update_frost_e)
@@ -629,21 +643,8 @@ update_frost_e<-function(x){
         if (length(ix)==0) next
         if (!exists("frost_data")) {
           frost_data<-data.frame(frost_e$elId[ix],
-                           xs$data$sourceId[ix],
-                           xs$data$referenceTime[ix], 
-                           frost_e$value_qcode[ix,1],
-                           frost_e$value_qcode[ix,2],
-                           frost_e$tOff[ix],
-                           frost_e$tRes[ix],
-                           frost_e$lev[ix],
-                           frost_e$levT[ix],
-                           frost_e$oelId[ix],
-                           stringsAsFactors=F)
-        } else {
-          frost_data<-rbind(frost_data,
-                      data.frame(frost_e$elId[ix],
-                                 xs$data$sourceId[ix],
-                                 xs$data$referenceTime[ix], 
+                                 frost_e$soId[ix],
+                                 frost_e$tRef[ix], 
                                  frost_e$value_qcode[ix,1],
                                  frost_e$value_qcode[ix,2],
                                  frost_e$tOff[ix],
@@ -651,7 +652,20 @@ update_frost_e<-function(x){
                                  frost_e$lev[ix],
                                  frost_e$levT[ix],
                                  frost_e$oelId[ix],
-                                 stringsAsFactors=F) )
+                                 stringsAsFactors=F)
+        } else {
+          frost_data<-rbind(frost_data,
+                            data.frame(frost_e$elId[ix],
+                                       frost_e$soId[ix],
+                                       frost_e$tRef[ix], 
+                                       frost_e$value_qcode[ix,1],
+                                       frost_e$value_qcode[ix,2],
+                                       frost_e$tOff[ix],
+                                       frost_e$tRes[ix],
+                                       frost_e$lev[ix],
+                                       frost_e$levT[ix],
+                                       frost_e$oelId[ix],
+                                       stringsAsFactors=F) )
         }
         rm(frost_e)
       } # end loop over several queries
@@ -685,8 +699,10 @@ update_frost_e<-function(x){
         frost_e$value_qcode<-array(data=NA,dim=c(xs$totalItemCount,2))
         frost_e$posok<-vector(mode="numeric",length=xs$totalItemCount)
         frost_e$elId<-vector(mode="character",length=xs$totalItemCount)
+        frost_e$soId<-vector(mode="character",length=totalItemCount)
         frost_e$tOff<-vector(mode="character",length=xs$totalItemCount)
         frost_e$tRes<-vector(mode="character",length=xs$totalItemCount)
+        frost_e$tRef<-vector(mode="character",length=totalItemCount)
         frost_e$lev<-vector(mode="numeric",length=xs$totalItemCount)
         frost_e$levT<-vector(mode="character",length=xs$totalItemCount)
         frost_e$oelId<-vector(mode="character",length=xs$totalItemCount)
@@ -694,6 +710,8 @@ update_frost_e<-function(x){
         frost_e$lev[]<-NA        
         frost_e$levT[]<-""
         frost_e$oelId[]<-""
+        frost_e$soId[]<-""
+        frost_e$tRef[]<-""
         devnull<-apply(cbind(xs$data$observations,1:xs$totalItemCount),
                        MARGIN=1,
                        FUN=update_frost_e)
@@ -704,8 +722,8 @@ update_frost_e<-function(x){
         } else {
           op <- options(digits.secs = 3)
           frost_data<-data.frame(frost_e$elId[ix],
-                                 xs$data$sourceId[ix],
-                                 xs$data$referenceTime[ix], 
+                                 frost_e$soId[ix],
+                                 frost_e$tRef[ix], 
                                  frost_e$value_qcode[ix,1],
                                  frost_e$value_qcode[ix,2],
                                  frost_e$tOff[ix],

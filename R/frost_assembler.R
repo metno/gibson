@@ -215,35 +215,28 @@
     ix<-unique(ix_tmp)
     rm(ix_tmp)
     match<-match(res$frost_meta$sourceId,res$frost_data$sourceId[ix])
+    ixIn<-which(res$frost_meta$sourceId %in% res$frost_data$sourceId[ix])
     rm(ix)
-    nonas<-which(!is.na(match))
-    if (length(nonas)==0) next
-    nmeta_tmp<-length(nonas)
-    meta_tmp<-data.frame(
-               timestamp=rep(Rdate2str(timestamp[t],format=formatOUT),nmeta_tmp),
-               sourceId=res$frost_meta$sourceId[match[nonas]],
-               z=res$frost_meta$z[match[nonas]],
-               stringsAsFactors=F)
-    coords_tmp<-coords.val[match[nonas],]
-    rm(match,nonas)
+    nmeta_tmp<-length(ixIn)
+    if (nmeta_tmp==0) next
     value_qcode<-array(data=NA,dim=c(nmeta_tmp,(2*noldElementCodes)))
-    ix_tmp<-integer(0)
     for (v in 1:noldElementCodes) {
-      ix_tmp<-c(ix_tmp,which(timestamp==timestampSeq[t] & 
-                           res$frost_data$oldElementCodes==oldElementCodes[v]))
-      match<-match(meta_tmp$sourceId,res$frost_data$sourceId[ix_tmp])
+      ix_tmp<-which(timestamp==timestampSeq[t] & 
+                    res$frost_data$oldElementCodes==oldElementCodes[v])
+      if (length(ix_tmp)==0) next
+      match<-match(res$frost_meta$sourceId[ixIn],res$frost_data$sourceId[ix_tmp])
       nonas<-which(!is.na(match))
       if (length(nonas)==0) next
-      value_qcode[match[nonas],(2*(v-1)+1):(2*v)]<-
+      value_qcode[nonas,(2*(v-1)+1):(2*v)]<-
        cbind(res$frost_data$value[ix_tmp[match[nonas]]],
              res$frost_data$qcode[ix_tmp[match[nonas]]])
     }
     rm(ix_tmp,match,nonas)
     out_tmp<-data.frame(
-            meta_tmp$timestamp,
-            meta_tmp$sourceId,
-            coords_tmp,
-            meta_tmp$z,
+            rep(Rdate2str(timestamp[t],format=formatOUT),nmeta_tmp),
+            res$frost_meta$sourceId[ixIn],
+            coords.val[ixIn,],
+            res$frost_meta$z[ixIn],
             value_qcode,
             stringsAsFactors=F)
     names(out_tmp)<-c("timestamp",
@@ -256,13 +249,14 @@
     } else {
       out<-out_tmp
     }
-    rm(out_tmp,meta_tmp)
+    rm(out_tmp,ixIn)
   }    
 #------------------------------------------------------------------------------
-save(file="tmp",list=c("out"))
   if (exists("out")) {
+save(out,res,timestamp,file="tmp")
     return(out)
   } else {
+save(res,timestamp,file="tmp")
     return(NULL)
   }
 }
