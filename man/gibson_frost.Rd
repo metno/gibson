@@ -79,7 +79,7 @@ gibson_frost(client_id=NULL,
 
 \item{stationholders}{character vector with the names of the station holders}
 
-\item{stationholders.exclude}{logical, it is used in combination with stationholders If FALSE, then the stationholder list will be used to select the station holders to include in the output.  If TRUE, then the stationholder list will be used to select the station holders NOT to include in the output.}
+\item{stationholders.exclude}{logical, it is used in combination with \code{stationholders}. If FALSE, then the \code{stationholders} list will be used to select those station holders to include in the output. If TRUE, then the \code{stationholders} list will be used to select those station holders NOT to include in the output. Note that it might happen that a station has more than one station holder, in this case if at least one of the specified \code{stationholders} is included within the station holders of a station then the correspondent action (i.e., include/exclude) will be executed.}
 
 \item{doit.meta}{logical. If set to TRUE then the source metadata are retrieved}
 

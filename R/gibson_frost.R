@@ -151,10 +151,15 @@
           for (k in 1:try.again) {
             xs<-try(fromJSON(url,flatten=T))
             if (class(xs)!="try-error") break
+            # Error 404 means no data in KDVH
+            if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) break
             Sys.sleep(sleep_sec)
           }
           # ERROR: frost is not happy with our request, or it is in a bad mood
-          if (class(xs)=="try-error") return(NULL)
+          if (class(xs)=="try-error") { 
+            if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) next
+            return(NULL)
+          }
           # proceed only if we got some data
           if (xs$totalItemCount>0) {
             # get (lon,lat) as a vector instead of dealing with a list
@@ -183,13 +188,7 @@
             } else {
               ix<-which(sel)
             }
-            # data frame as id,lon,lat,elev,stationholder
-            tmp<-data.frame(xs$data$id[ix],
-                            xy[ix,],
-                            xs$data$masl[ix],
-                            xs$data$wmoId[ix],
-                            stringsAsFactors=F)
-            names(tmp)<-c("id","lon","lat","z","wmoid")
+            if (length(ix)==0) next
             # station holders selection over the region of interest
             frost_e<-new.env()
             frost_e$tmphold<-list()
@@ -202,13 +201,24 @@
             rm(devnull)
               #update global data structure given the results for this country
             if (!exists("metaStat")) {
-              metaStat<-tmp
+              metaStat<-data.frame(id=xs$data$id[ix],
+                                   lon=xy[ix,1],
+                                   lat=xy[ix,2],
+                                   z=xs$data$masl[ix],
+                                   wmoid=xs$data$wmoId[ix],
+                                   stringsAsFactors=F)
               sthold<-frost_e$tmphold
             } else {
-              metaStat<-rbind(metaStat,tmp)
+              metaStat<-rbind(metaStat,
+                             data.frame(id=xs$data$id[ix],
+                                        lon=xy[ix,1],
+                                        lat=xy[ix,2],
+                                        z=xs$data$masl[ix],
+                                        wmoid=xs$data$wmoId[ix],
+                                        stringsAsFactors=F))
               sthold<-c(sthold,frost_e$tmphold)
             }
-            rm(tmp,frost_e)
+            rm(frost_e)
           } # end IF proceed only if we got some data
           rm(xs)
         } #end FOR cycle over countries
@@ -246,7 +256,7 @@
           } else {
             ix<-which(sel)
           }
-          # data frame as id,lon,lat,elev,stationholder
+          # data frame as id,lon,lat,elev,wmoid
           metaStat<-data.frame(xs$data$id[ix],
                                xy[ix,],
                                xs$data$masl[ix],
@@ -302,7 +312,7 @@
         } else {
           ix<-which(sel)
         }
-        # data frame as id,lon,lat,elev,stationholder
+        # data frame as id,lon,lat,elev,wmoid
         metaStat<-data.frame(xs$data$id[ix],
                              xy[ix,],
                              xs$data$masl[ix],
@@ -352,10 +362,12 @@
                            metaStattmp$wmoid[match[ix]],
                            stringsAsFactors=F)
       names(metaStat)<-c("id","lon","lat","z","wmoid")
+      rm(metaStattmp)
       nsou<-length(metaStat$id)
       stholdtmp<-sthold
       sthold<-list()
       for (i in 1:nsou) sthold[[i]]<-stholdtmp[[match[ix[i]]]]
+      rm(stholdtmp)
     }
   #
   #............................................................................
@@ -614,10 +626,16 @@ update_frost_e<-function(x){
         for (k in 1:try.again) {
           xs<-try(fromJSON(url,flatten=T))
           if (class(xs)!="try-error") break
+          # error 404 means no data returned
+          if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) break
           Sys.sleep(sleep_sec)
         }
         # ERROR: frost is not happy with our request, or it is in a bad mood
-        if (class(xs)=="try-error") return(NULL)
+        if (class(xs)=="try-error") {
+          # error 404 means no data returned
+          if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) next
+          return(NULL)
+        }
         if (xs$totalItemCount==0) next
         totalItemCount<-0
         for (i in 1:xs$totalItemCount)
