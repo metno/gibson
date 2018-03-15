@@ -17,6 +17,7 @@
                          doit.meta=T,
                          doit.data=T,
                          WMOonly=F,
+                         WMOin=T,
                          try.again=1,
                          sleep_sec=5,
                          na.rm=T,
@@ -167,8 +168,12 @@
             # select only (WMO) station within the region specified
             sel<-vector(mode="logical",length=xs$totalItemCount)
             sel[]<-T
-            if (WMOonly) sel<-is.na(xs$data$wmoId)
-            sel<-!is.na(xy[,1]) & !is.na(xy[,2]) & !is.na(xs$data$masl)
+            if (WMOonly) {
+              sel<-!is.na(xs$data$wmoId)
+            } else {
+              if (!WMOin) sel<-sel & is.na(xs$data$wmoId)
+            }
+            sel<-sel & !is.na(xy[,1]) & !is.na(xy[,2]) & !is.na(xs$data$masl)
             if (!is.null(spatial_extent)) {
               ix<-which( xy[,1]>=spatial_extent[1] & 
                          xy[,1]<=spatial_extent[2] &

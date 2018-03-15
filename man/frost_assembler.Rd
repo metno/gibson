@@ -24,6 +24,7 @@ frost_assembler(client_id=NULL,
                 stationholders=NULL,
                 stationholders.exclude=F,
                 WMOonly=F,
+                WMOin=T,
                 na.rm=T,
                 url.show=F,
                 coords=data.frame(x="lon",y="lat",
@@ -55,7 +56,9 @@ frost_assembler(client_id=NULL,
 
 \item{stationholders.exclude}{logical, it is used in combination with stationholders If FALSE, then the stationholder list will be used to select the station holders to include in the output.  If TRUE, then the stationholder list will be used to select the station holders NOT to include in the output.}
 
-\item{WMOonly}{logical, if TRUE then only WMO stations (i.e., having a WMO code will be returned}
+\item{WMOonly}{logical, if TRUE then only WMO stations (i.e., having a WMO code) will be returned}
+
+\item{WMOin}{logical, used only if WMOonly=FALSE. if TRUE then WMO stations (i.e., having a WMO code) will be returned otherwise the will not.}
 
 \item{na.rm}{logical, if TRUE remove NAs from the output}
 

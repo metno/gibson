@@ -42,6 +42,7 @@ gibson_frost(client_id=NULL,
              doit.meta=T,
              doit.data=T,
              WMOonly=F,
+             WMOin=T,
              try.again=1,
              sleep_sec=5,
              na.rm=T,
@@ -85,6 +86,8 @@ gibson_frost(client_id=NULL,
 \item{doit.data}{logical. If set to TRUE then the observed values are retrieved} 
 
 \item{WMOonly}{logical, if TRUE then only WMO stations (i.e., having a WMO code will be returned}
+
+\item{WMOin}{logical, used only if WMOonly=FALSE. if TRUE then WMO stations (i.e., having a WMO code) will be returned otherwise the will not.}
 
 \item{try.again}{numeric value specifying the number of request attemps before giving up}
 
