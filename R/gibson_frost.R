@@ -718,24 +718,28 @@ update_frost_e<-function(x){
       # ERROR: frost is not happy with our request, or it is in a bad mood
       if (class(xs)=="try-error") return(NULL)
       if (xs$totalItemCount>0) {
+        totalItemCount<-0
+        for (i in 1:xs$totalItemCount)
+          totalItemCount<-totalItemCount+length(xs$data$observations[[i]][,1])
         # select observations according to na.rm and weather elements
         frost_e<-new.env()
-        frost_e$value_qcode<-array(data=NA,dim=c(xs$totalItemCount,2))
-        frost_e$posok<-vector(mode="numeric",length=xs$totalItemCount)
-        frost_e$elId<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$soId<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$tOff<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$tRes<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$tRef<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$lev<-vector(mode="numeric",length=xs$totalItemCount)
-        frost_e$levT<-vector(mode="character",length=xs$totalItemCount)
-        frost_e$oelId<-vector(mode="character",length=xs$totalItemCount)
+        frost_e$value_qcode<-array(data=NA,dim=c(totalItemCount,2))
+        frost_e$posok<-vector(mode="numeric",length=totalItemCount)
+        frost_e$elId<-vector(mode="character",length=totalItemCount)
+        frost_e$soId<-vector(mode="character",length=totalItemCount)
+        frost_e$tOff<-vector(mode="character",length=totalItemCount)
+        frost_e$tRes<-vector(mode="character",length=totalItemCount)
+        frost_e$tRef<-vector(mode="character",length=totalItemCount)
+        frost_e$lev<-vector(mode="numeric",length=totalItemCount)
+        frost_e$levT<-vector(mode="character",length=totalItemCount)
+        frost_e$oelId<-vector(mode="character",length=totalItemCount)
         frost_e$posok[]<-NA
         frost_e$lev[]<-NA        
         frost_e$levT[]<-""
         frost_e$oelId[]<-""
         frost_e$soId[]<-""
         frost_e$tRef[]<-""
+        frost_e$i<-0
         devnull<-apply(cbind(xs$data$observations,1:xs$totalItemCount),
                        MARGIN=1,
                        FUN=update_frost_e)
