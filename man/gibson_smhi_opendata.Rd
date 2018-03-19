@@ -5,8 +5,8 @@
 \title{get SMHI in-situ data}
 
 \description{
-Download metadata and observations from the database of in-situ observation of the Swedish Meterological and Hydrological Institute (SMHI) by using the SMHI Open Data Meteorological Observations REST API (https://opendata-download-metobs.smhi.se).
-In particular, this function has been implemented and tested to download hourly and diurnal data, though it can be used for other aggregation intervals too.
+Download metadata and observations from the database of in-situ observation of the Swedish Meterological and Hydrological Institute (SMHI) by using the SMHI Open Data Meteorological Observations REST API (\link{https://opendata-download-metobs.smhi.se}).
+In particular, this function has been implemented and tested to download hourly data.
 
 The database includes in-situ data measured by the network of sensors located at stations belonging to several different station holders (not only SMHI).
 One station has a unique owner.
@@ -16,7 +16,9 @@ The post-pocessing usually aggregates the measured values in different ways (mea
 A single observed value returned by \code{gibson_smhi_opendata} can be univocally identified by the union of several pieces of information, such as (for our purposes): \code{station_key}, \code{parameterId}, \code{date}.
 The \code{station_key} identifies the station.
 The \code{parameterId} specifies the meteorological or climate element and the post-processing action by means of a numerical code (see \link{https://opendata-download-metobs.smhi.se/api/version/1.0.json}). 
-The \code{date} specifies the observation time or timestamp, that is the beggining of the measurement/post-processing time intervalin (time standard is Coordinated Universal Time or UTC).
+The \code{date} specifies the observation time or timestamp (time standard is Coordinated Universal Time or UTC).
+For hourly data, the timestamp specifies the end of the aggregation period, se for example the page \link{https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station-set/all/period/latest-hour.json} where the fields \code{from} and \code{to} give the extreme of the time aggregation period.
+The correspondent downloaded data \link{https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station-set/all/period/latest-hour/data.json} report the end of the aggregation period as the \code{date}.
 
 For convenience, it is possible to request the Weather and Climate Elements also by using their MET Norway's old element codes \code{\link{gibson_frost}}.
 
@@ -59,7 +61,7 @@ gibson_smhi_opendata(frost_oldElementCodes=NULL,
 API Response Messages (HTTP_Status_Code Reason) are reported at \link{https://opendata.smhi.se/apidocs/metobs/common.html#httpcodes}.
 
 The date is returned as it is downloaded from the API, which is UNIX time in milliseconds from 1970-01-01.
-The timestamp mark the start of the measurement/aggregation period.
+For hourly data, the timestamp specifies the end of the aggregation period.
 }
 
 \value{
