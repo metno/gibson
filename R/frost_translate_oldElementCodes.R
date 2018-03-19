@@ -30,21 +30,21 @@
     switch(oldElementCodes[i],
      "RR_1" = {   
        ElementCodes$elementId[i]="sum(precipitation_amount PT1H)"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
               },
        "TA" = {
        ElementCodes$elementId[i]="air_temperature"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=2
        ElementCodes$level.levelType[i]="height_above_ground"
               },
       "TAM" = {  
        ElementCodes$elementId[i]="mean(air_temperature P1D)"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="P1D"
        ElementCodes$level.value[i]=2
        ElementCodes$level.levelType[i]="height_above_ground"
@@ -65,35 +65,35 @@
               },
        "FF" = {  
        ElementCodes$elementId[i]="wind_speed"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=10
        ElementCodes$level.levelType[i]="height_above_ground"
               },
        "PR" = {  
        ElementCodes$elementId[i]="air_pressure_at_sea_level"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
               },
        "DG" = {  
        ElementCodes$elementId[i]="wind_from_direction_of_gust"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=10
        ElementCodes$level.levelType[i]="height_above_ground"
               },
        "DD" = {  
        ElementCodes$elementId[i]="wind_from_direction"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=10
        ElementCodes$level.levelType[i]="height_above_ground"
               },
        "FG" = {  
        ElementCodes$elementId[i]="wind_speed_of_gust"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=10
        ElementCodes$level.levelType[i]="height_above_ground"
@@ -114,7 +114,7 @@
               },
        "UU" = {  
        ElementCodes$elementId[i]="relative_humidity"
-       ElementCodes$timeOffset[i]="PT00H"
+       ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""

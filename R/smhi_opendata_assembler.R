@@ -119,6 +119,10 @@
   # get the timestamp
   tstamp_unixtime<-unique(res$smhi_opendata_data$date
                           [which(!is.na(res$smhi_opendata_data$date))])
+  if (length(tstamp_unixtime)!=1) {
+    print("ERROR all observations are supposed to be for the same hour")
+    return(NULL)
+  }
   tstamp<-Rdate2str(as.POSIXct(tstamp_unixtime/1000,origin="1970-01-01",tz="UTC"),
                     format=formatOUT)
   # get values and dqc
