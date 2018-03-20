@@ -26,12 +26,26 @@ createTimeSeq<-function(start_date="2015.01.01.01",
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #==============================================================================
   # set parameters
+  if (!is.null(stop_date))
+    if  (is.na(stop_date)) stop_date<-NULL
+  if (!is.null(season))
+    if  (any(is.na(season))) season<-NULL
+  if (!is.null(hourOFday.sel))
+    if  (any(is.na(hourOFday.sel))) hourOFday.sel<-NULL
+  if (!is.null(dayOFmonth.sel))
+    if  (any(is.na(dayOFmonth.sel))) dayOFmonth.sel<-NULL
+  if (!is.null(N.prev))
+    if  (is.na(N.prev)) N.prev<-NULL
+  if (!is.null(N.succ))
+    if  (is.na(N.succ)) N.succ<-NULL
+  #
   mon.s<-0:11
   if (!is.null(season)) {
-    if (season=="MAM") mon.s<-c(2,3,4)
-    if (season=="JJA") mon.s<-c(5,6,7)
-    if (season=="SON") mon.s<-c(8,9,10)
-    if (season=="DJF") mon.s<-c(11,0,1)
+    mon.s<-integer(0)
+    if (any(season=="MAM")) mon.s<-c(mon.s,2,3,4)
+    if (any(season=="JJA")) mon.s<-c(mon.s,5,6,7)
+    if (any(season=="SON")) mon.s<-c(mon.s,8,9,10)
+    if (any(season=="DJF")) mon.s<-c(mon.s,11,0,1)
   }
   hour.s<-0:23
   if (!is.null(hourOFday.sel)) hour.s<-hourOFday.sel
