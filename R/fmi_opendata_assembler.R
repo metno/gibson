@@ -1,7 +1,7 @@
 #+ get in-situ observations from http://data.fmi.fi
 `fmi_opendata_assembler`<-function(apiKey=NULL,
                                    oldElementCodes=NULL,
-                                   timeResolution=NULL, # PT1H or P1D
+                                   timeOffset=0,
                                    start_date=NULL,
                                    stop_date=NULL,
                                    format="%Y-%m-%dT%H:%M",
@@ -128,6 +128,7 @@
 #------------------------------------------------------------------------------
 # create the timestamp out of timeResolution,timeOffset,referenceTime
   if (verbose) print("create timeStamp")
+  res$fmi_opendata_data$time<-res$fmi_opendata_data$time+timeOffset
   timestamp<-as.POSIXlt(res$fmi_opendata_data$time,
                         origin="1970-01-01", 
                         tz="UTC")
@@ -140,22 +141,24 @@
   if (verbose) print("assembly  output")
   for (v in 1:noldElementCodes) {
     if (v==1) {
-      oEstr<-c(oldElementCodes[1],paste(oldElementCodes[1],"_qcode",sep=""))
+      oEstr<-c(oldElementCodes[1],
+               paste(oldElementCodes[1],"_qcode",sep=""))
     } else {
       oEstr<-c(oEstr,
-               oldElementCodes[v],paste(oldElementCodes[v],"_qcode",sep=""))
+               oldElementCodes[v],
+               paste(oldElementCodes[v],"_qcode",sep=""))
     }
   }
+
   nout<-length(timestamp)
-  value_qcode<-array(data=NA,dim=c(nmeta_tmp,(2*noldElementCodes)))
+  value_qcode<-array(data=NA,dim=c(nout,(2*noldElementCodes)))
   for (v in 1:noldElementCodes) {
     value_qcode[,(2*(v-1)+1):(2*v)]<-
-     cbind(res$frost_data$value[ix_tmp[match[nonas]]],
-           res$frost_data$qcode[ix_tmp[match[nonas]]])
+     cbind(as.numeric(res$fmi_opendata_data[[oldElementCodes[v]]]),
+           rep(0,nout))
   }
-
   out<-data.frame(Rdate2str(timestamp,format=formatOUT),
-                  res$fmi_opendata_data$sourceId,
+                  paste0(res$fmi_opendata_data$sourceId,":fmi"),
                   coords.val[1:nout,],
                   res$fmi_opendata_data$z,
                   value_qcode,
