@@ -14,7 +14,7 @@ fmi_getURL(apiKey=NULL,
            abbrv=NULL, #"minute" "day"
            starttime=NULL,
            endtime=NULL,
-           format="%Y-%m-%dT%H:%M",
+           format="\%Y-\%m-\%dT\%H:\%M",
            parameters=NULL,
            bbox=c(19.09,59.3,31.59,70.13)) 
 }
