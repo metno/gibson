@@ -123,6 +123,7 @@
       print(paste0("WARNING: found a station id in the xml that is not",
                    " present in the station list,",
                    " this is not supposed to happen"))
+      print(paste0("fmisid wmo =",tl.fmisid," ",tl.wmo))
       metaStat<-rbind(metaStat,
                       c(tl.fmisid,NA,tl.wmo))
       nmeta<-nmeta+1
