@@ -38,7 +38,7 @@
   #............................................................................
   # ==> retrieve station information
   for (k in 1:try.again) {
-    stn_list<-try(fmi_station_list(url=url4stnlist))
+    stn_list<-try(fmi_station_list())
     if (class(stn_list)!="try-error") break
     Sys.sleep(sleep_sec)
   }
