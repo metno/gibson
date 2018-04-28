@@ -27,7 +27,8 @@
     referenceTime[ix]<-as.POSIXlt(
                         str2Rdate(paste(day,"-",rep("00",length(day)),sep=""),
                                         format="%Y-%m-%d-%H"),tzone="UTC")
-    timeOffset<-as.numeric(substr(frost_data$timeOffset[ix],3,4))
+#    timeOffset<-as.numeric(substr(frost_data$timeOffset[ix],3,4))
+    timeOffset<-as.numeric(gsub("[^0-9\\.]","",frost_data$timeOffset[ix]))
     timestamp[ix]<-referenceTime[ix]+as.difftime(timeOffset, unit="hours")
     rm(day,timeOffset)
   }

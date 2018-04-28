@@ -51,14 +51,14 @@
               },
     "TAMRR" = {  
        ElementCodes$elementId[i]="mean(air_temperature P1D)"
-       ElementCodes$timeOffset[i]="PT06H"
+       ElementCodes$timeOffset[i]="PT6H"
        ElementCodes$timeResolution[i]="P1D"
        ElementCodes$level.value[i]=2
        ElementCodes$level.levelType[i]="height_above_ground"
               },
        "RR" = {  
        ElementCodes$elementId[i]="sum(precipitation_amount P1D)"
-       ElementCodes$timeOffset[i]="PT06H"
+       ElementCodes$timeOffset[i]="PT6H"
        ElementCodes$timeResolution[i]="P1D"
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
