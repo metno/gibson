@@ -11,7 +11,12 @@ Ensure the following R-libraries (and their dependencies) are installed:
 
 (i) Download the gibson source code or (ii) the compressed archive or (ii) clone this github repository (git clone ...), at your preference.
 
-Install gibson R-package as described [here](https://cran.r-project.org/).
+Install the gibson R-package using either [devtools](https://cran.r-project.org/web/packages/devtools/README.html):
+
+```
+devtools::install_github("metno/gibson")
+```
+or as described [here](https://cran.r-project.org/).
 
 Copyright and license
 ---------------------
