@@ -35,6 +35,13 @@
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
               },
+     "RR_010" = {   
+       ElementCodes$elementId[i]="sum(precipitation_amount PT10M)"
+       ElementCodes$timeOffset[i]="PT0H"
+       ElementCodes$timeResolution[i]="PT10M"
+       ElementCodes$level.value[i]=NA
+       ElementCodes$level.levelType[i]=""
+              },
        "TA" = {
        ElementCodes$elementId[i]="air_temperature"
        ElementCodes$timeOffset[i]="PT0H"

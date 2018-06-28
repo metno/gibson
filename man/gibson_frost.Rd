@@ -7,6 +7,7 @@
 \description{
 Download metadata and observations from the Climate Database (KDVH) of the Norwegian Meterological Institute (MET Norway or MET.NO) by using the Frost API (frost.met.no).
 In particular, this function has been implemented and tested to download hourly and diurnal data, though it can be used for other aggregation intervals too.
+For example, it is used to download 10-minute precipitation data.
 The Frost documentation is available at frost.met.no.
 
 The KDVH contains in-situ data measured by the network of sensors located at stations belonging to several different station holders (not only "MET.NO").
@@ -182,6 +183,10 @@ frost<-gibson_frost(client_id=auth,oldElementCodes="RR", sources="ALL",start_dat
 #--------------------------------------------------------------------
 # hourly total precipitation and daily mean temperature (06-06UTC) only for MET.NO stations
 frost<-gibson_frost(client_id=auth,oldElementCodes=c("RR_1","TAMRR"), sources="ALL",start_date="2018-03-02T08:00",stop_date="2018-03-04T13:00",format="\%Y-\%m-\%dT\%H:\%M",countries="NO",stationholders="MET.NO",url.show=T)
+
+#--------------------------------------------------------------------
+# 10-minute total precipitation data
+frost<-gibson_frost(client_id=auth, oldElementCodes="RR_010", sources="ALL", start_date="2018-06-20T08:10", stop_date="2018-06-20T08:10", countries="NO")
 
 }
 % at least one, from /Library/Frameworks/R.framework/Versions/2.1.1/Resources/doc
