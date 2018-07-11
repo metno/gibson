@@ -49,10 +49,9 @@
     print(ElCodes$oldElementCodes[which(ElCodes$elementId=="")])
     return(NULL)
   }
-  if ( any(ElCodes$timeResolution=="P1D") &
-       any(ElCodes$timeResolution=="PT1H") |
-       any(ElCodes$timeResolution!="PT1H" & 
-           ElCodes$timeResolution!="P1D") ) {
+  
+  
+  if ( length(unique(ElCodes$timeResolution))!=1) {
     print("ERROR it is not possible to mix data with hourly and daily sampling")
     print("      OR it has been specified a non-valid aggregation time")
     return(NULL)

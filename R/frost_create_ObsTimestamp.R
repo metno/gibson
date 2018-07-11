@@ -17,8 +17,8 @@
                                       format="%Y-%m-%dT%H:%M:%S"),tzone="UTC")
   timestamp<-structure( rep(NA_real_,length(referenceTime)),
                         class=c("POSIXct", "POSIXt") )
-  # hourly elements has timestamp equal to referenceTime
-  ix<-which(frost_data$timeResolution=="PT1H")
+  # hourly & 10min elements has timestamp equal to referenceTime
+  ix<-which(frost_data$timeResolution=="PT1H" | frost_data$timeResolution=="PT10M" )
   if (length(ix)>0) timestamp[ix]<-referenceTime[ix]
   # daily
   ix<-which(frost_data$timeResolution=="P1D")

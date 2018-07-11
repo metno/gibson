@@ -55,8 +55,8 @@ createTimeSeq<-function(start_date="2015.01.01.01",
   Rstart_date<-as.POSIXlt(str2Rdate(start_date,format=format))
   bystr<-paste(time_step," ",unit,sep="")
   if (is.null(stop_date)) {
-    Rstop_date<-Rstart_date+as.difftime(N.succ, unit=unit)
-    Rstart_date<-Rstart_date-as.difftime(N.prev, unit=unit)
+    Rstop_date<-Rstart_date+as.difftime(N.succ*time_step, unit=unit)
+    Rstart_date<-Rstart_date-as.difftime(N.prev*time_step, unit=unit)
   } else {
     Rstop_date<-as.POSIXlt(str2Rdate(stop_date,format=format))
   }
