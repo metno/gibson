@@ -49,12 +49,14 @@ fmi_getURL<-function(apiKey=NULL,
     print("fmi_getURL.R ERROR: abbrv must be either \"minute\" or \"day\"")
     qid_str<-"" 
   }
-  url<-paste0("http://data.fmi.fi/fmi-apikey/",apiKey,
+#  url<-paste0("http://data.fmi.fi/fmi-apikey/",apiKey,
+  url<-paste0("http://opendata.fmi.fi",
               "/wfs?request=GetFeature",
               "&storedquery_id=",qid_str,
               "&bbox=",bbox_str,
               par_str,
               timestr)
+  print(url)
   url
 }
 

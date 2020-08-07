@@ -38,7 +38,9 @@ gibson_fmi_opendata(apiKey=NULL,
                     sleep_sec=5,
                     na.rm=T,
                     url.show=F,
-                    url4stnlist="http://en.ilmatieteenlaitos.fi/observation-stations")
+                    file_station_list="/lustre/storeB/project/metkl/senorge2/case/etc/fmi_oper_list_of_stations.html",
+                    url4stnlist="http://en.ilmatieteenlaitos.fi/observation-stations"
+                    )
 }
 
 \arguments{
@@ -73,7 +75,9 @@ gibson_fmi_opendata(apiKey=NULL,
 
 \item{url.show}{logical, if TRUE the urls are shown to the user}
 
-\item{url4stnlist}{character, link to the page with the list of observation stations}
+\item{file_station_list}{character, full file name of the file with the list of stations}
+
+\item{url4stnlist}{character, link to the page with the list of observation stations (NOT USED, the file_station_list is used instead)}
 
 }
 
@@ -96,6 +100,17 @@ For 'r_1h' hourly precipitation, the timestamp marks the end of the aggregation 
 The other hourly values ('t2m', 'ws_10min', 'p_sea', 'wd_10min', 'wg_10min', 'rh') are actually instantaneous values or 10-minute values referring to the 10-minute interval that ends at minute 00.
 
 For daily (or diurnal) values of: 'rrday' Precipitation is between 0700 UTC and 0700 UTC of the successive day respect to the one reported as the timestamp; 'tmin'  the lowest temperature during two 12 hours period, i.e. between 1900 UTC previous evening and 1900 UTC this evening; 'tmax' the highest temperature during two 12 hours period, i.e. between 1900 UTC previous evening and 1900 UTC this evening; 'tday' the average temperature based usually on 4 or 8 observations per day.
+
+file_station_list is file with a list of station, organized as it follows (column separator must be the tab key):
+
+Name  FMISID  LPNN  WMO Lat Lon Elevation Groups  Started
+
+Alajärvi Möksy  101533  3314  2787  63.09 24.26 171 weather 1957
+
+Alavus Sulkavankylä   101305  2213    62.45 23.55 124 precipitation 1942
+
+...
+
 }
 
 \value{

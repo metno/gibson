@@ -14,6 +14,7 @@
                                 sleep_sec=5,
                                 na.rm=T,
                                 url.show=F,
+          file_station_list="/lustre/storeB/project/metkl/senorge2/case/etc/fmi_oper_list_of_stations.html",
           url4stnlist="http://en.ilmatieteenlaitos.fi/observation-stations") {
 #------------------------------------------------------------------------------
 #  This file is free software: you may copy, redistribute and/or modify it  
@@ -38,7 +39,7 @@
   #............................................................................
   # ==> retrieve station information
   for (k in 1:try.again) {
-    stn_list<-try(fmi_station_list())
+    stn_list<-try(fmi_station_list(file_station_list=file_station_list))
     if (class(stn_list)!="try-error") break
     Sys.sleep(sleep_sec)
   }
