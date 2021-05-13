@@ -77,13 +77,14 @@
 # string initialization
   str0<-paste("https://",client_id,"@frost.met.no",sep="")
   if (!is.null(spatial_extent))
-    polygonstr<-paste("geometry=POLYGON%20((",
-                      spatial_extent[1],"%20",spatial_extent[3],",",
-                      spatial_extent[1],"%20",spatial_extent[4],",",
-                      spatial_extent[2],"%20",spatial_extent[4],",",
-                      spatial_extent[2],"%20",spatial_extent[3],",",
-                      spatial_extent[1],"%20",spatial_extent[3],"))",
-                      sep="")
+#    polygonstr<-paste("geometry=POLYGON%20((",
+#                      spatial_extent[1],"%20",spatial_extent[3],",",
+#                      spatial_extent[1],"%20",spatial_extent[4],",",
+#                      spatial_extent[2],"%20",spatial_extent[4],",",
+#                      spatial_extent[2],"%20",spatial_extent[3],",",
+#                      spatial_extent[1],"%20",spatial_extent[3],"))",
+#                      sep="")
+    polygonstr <- ""
   # Weather and Climate Elements
   if (!is.null(oldElementCodes)) {
     ElCodes<-frost_translate_oldElementCodes(oldElementCodes)
@@ -115,6 +116,7 @@
    "",paste("&levelTypes=",paste(unique(ElCodes$level.levelType),collapse=","),sep=""))
   # play with dates so that frost is happy
   formatFrost<-"%Y-%m-%dT%H:%M"
+  formatFrost_validtime<-"%Y-%m-%d"
   if (format!=formatFrost) {
     Rdate_start<-as.POSIXlt(str2Rdate(start_date,format=format))
     Rdate_stop<-as.POSIXlt(str2Rdate(stop_date,format=format))
@@ -125,6 +127,9 @@
     stop_dateMod<-stop_date
   }
   datestr<-paste("referencetime=",start_dateMod,"/",stop_dateMod,sep="")
+  start_validtime<-Rdate2str(Rdate_start,formatFrost_validtime)
+  stop_validtime<-Rdate2str(Rdate_stop,formatFrost_validtime)
+  validtime<-paste("validtime=",start_validtime,"/",stop_validtime,sep="")
 #------------------------------------------------------------------------------
 # >> METADATA <<
   #............................................................................
@@ -139,8 +144,9 @@
     str1<-paste(str0,
                 "/sources/v0.jsonld?types=SensorSystem",
                 "&fields=id,geometry,masl,stationholders,wmoid",
+                "&",validtime,
                 sep="")
-    if (!is.null(spatial_extent)) str1<-paste(str1,"&",polygonstr,sep="")
+#    if (!is.null(spatial_extent)) str1<-paste(str1,"&",polygonstr,sep="")
     # case of all stations are requested
     if (sources=="ALL") {
       # query by country
@@ -161,6 +167,7 @@
             return(NULL)
           }
           # proceed only if we got some data
+          print( paste( " #items from DB=",xs$totalItemCount))
           if (xs$totalItemCount>0) {
             # get (lon,lat) as a vector instead of dealing with a list
             xy<-t(apply(cbind(xs$data$geometry.coordinates,1:xs$totalItemCount),
@@ -178,6 +185,7 @@
             } else {
               if (!WMOin) sel<-sel & is.na(xs$data$wmoId)
             }
+            print( paste( " #items after WMO selection=",length(which(sel))))
             sel<-sel & !is.na(xy[,1]) & !is.na(xy[,2]) & !is.na(xs$data$masl)
             if (!is.null(spatial_extent)) {
               ix<-which( xy[,1]>=spatial_extent[1] & 
@@ -188,6 +196,7 @@
             } else {
               ix<-which(sel)
             }
+            print( paste( " #items after valid coordinates checks=",length(which(sel))))
             if (length(ix)==0) next
             # station holders selection over the region of interest
             frost_e<-new.env()
@@ -353,6 +362,7 @@
         return(NULL)
       }
       ix<-which(!is.na(match))
+      print( paste( " #items after station holder selection=",length(ix)))
       metaStattmp<-metaStat
       rm(metaStat)
       metaStat<-data.frame(metaStattmp$id[match[ix]],
@@ -410,6 +420,7 @@
         sourcesaux[i]<-strsplit(xs$data$sourceId,":")[[i]][1]
         sensIdaux[i]<-strsplit(xs$data$sourceId,":")[[i]][2]
       }
+
       # check if there is an intersection between the two sets of 
       #  (i) selected stations (metaStat) and (ii) available sensors
       if (any(!is.na(match(sourcesaux,metaStat$id)))) {
