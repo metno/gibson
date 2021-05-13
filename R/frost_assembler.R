@@ -115,9 +115,9 @@
                qcode=res$frost_data$qcode[ix],
                stringsAsFactors=F) )
     if (exists("ixNoDup")) {
-      ixNoDup<-c(ixNoDup,ixNoDup_tmp)
+      ixNoDup<-c(ixNoDup,ix[ixNoDup_tmp])
     } else {
-      ixNoDup<-ixNoDup_tmp
+      ixNoDup<-ix[ixNoDup_tmp]
     }
   }
   if (!exists("ixNoDup")) {
