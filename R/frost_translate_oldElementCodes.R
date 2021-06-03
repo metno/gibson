@@ -123,8 +123,8 @@
        ElementCodes$elementId[i]="relative_humidity"
        ElementCodes$timeOffset[i]="PT0H"
        ElementCodes$timeResolution[i]="PT1H"
-       ElementCodes$level.value[i]=NA
-       ElementCodes$level.levelType[i]=""
+       ElementCodes$level.value[i]=2
+       ElementCodes$level.levelType[i]="height_above_ground"
               },
        # default: element is not defined
        {

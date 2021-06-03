@@ -96,6 +96,12 @@
     print("ERROR while retriving data")
     return(NULL)
   }
+
+  if (length( res$frost_data) == 0) {
+    print("WARNING No data")
+    return(NULL)
+  }
+
   if (length(res$frost_data$sourceId)==0) {
     print("WARNING No data")
     return(NULL)

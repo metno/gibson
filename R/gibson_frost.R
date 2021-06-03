@@ -164,6 +164,7 @@
           # ERROR: frost is not happy with our request, or it is in a bad mood
           if (class(xs)=="try-error") { 
             if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) next
+            print("HTTP error 404")
             return(NULL)
           }
           # proceed only if we got some data
@@ -241,8 +242,8 @@
           Sys.sleep(sleep_sec)
         }
         # ERROR: frost is not happy with our request, or it is in a bad mood
-        if (class(xs)=="try-error") return(NULL)
-        if (!exists("xs")) return(NULL)
+        if (class(xs)=="try-error") { print("1. class xs try-error");  return(NULL)}
+        if (!exists("xs")) { print("!exists(\"xs\")"); return(NULL)}
         # proceed only if we got some data
         if (xs$totalItemCount>0) {
         # get (lon,lat) as a vector instead of dealing with a list
@@ -298,7 +299,7 @@
         Sys.sleep(sleep_sec)
       }
       # ERROR: frost is not happy with our request, or it is in a bad mood
-      if (class(xs)=="try-error") return(NULL)
+      if (class(xs)=="try-error") { print("2. class xs try-error");  return(NULL)}
       # proceed only if we got some data
       if (xs$totalItemCount>0) {
         # get (lon,lat) as a vector instead of dealing with a list
@@ -344,7 +345,7 @@
       rm(xs)
     } # end IF sources==ALL | sources are specified
     # ERROR: for some reasons we always got 0 data from frost
-    if (!exists("metaStat")) return(NULL)
+    if (!exists("metaStat")) { print("!exists(\"metaStat\")"); return(NULL)}
     nsou<-length(metaStat$id)
     sourcesstr<-paste("&sources=", paste(unique(metaStat$id),collapse=","),sep="")
     #
@@ -411,7 +412,7 @@
       Sys.sleep(sleep_sec)
     }
     # ERROR: frost is not happy with our request, or it is in a bad mood
-    if (class(xs)=="try-error") return(NULL)
+    if (class(xs)=="try-error") { print("3. class xs try-error");  return(NULL)}
     # proceed only if we got some data
     if (xs$totalItemCount>0) {
       sourcesaux<-vector()
@@ -727,7 +728,7 @@ update_frost_e<-function(x){
         Sys.sleep(sleep_sec)
       }
       # ERROR: frost is not happy with our request, or it is in a bad mood
-      if (class(xs)=="try-error") return(NULL)
+      if (class(xs)=="try-error") { print("4. class xs try-error");  return(NULL)}
       if (xs$totalItemCount>0) {
         totalItemCount<-0
         for (i in 1:xs$totalItemCount)
