@@ -348,6 +348,8 @@
     if (!exists("metaStat")) { print("!exists(\"metaStat\")"); return(NULL)}
     nsou<-length(metaStat$id)
     sourcesstr<-paste("&sources=", paste(unique(metaStat$id),collapse=","),sep="")
+    print( paste( " #items metaStat=",length(metaStat$id)))
+    print( paste( " #items unique metaStat=",length(unique(metaStat$id))))
     #
     # selection based on the station holder
     if (!is.null(stationholders)) {
@@ -380,6 +382,7 @@
       for (i in 1:nsou) sthold[[i]]<-stholdtmp[[match[ix[i]]]]
       rm(stholdtmp)
     }
+    print( paste( " #items afterstation holder selection metaStat=",length(unique(metaStat$id))))
   #
   #............................................................................
   # ==> retrieve sensor information
@@ -413,6 +416,7 @@
     }
     # ERROR: frost is not happy with our request, or it is in a bad mood
     if (class(xs)=="try-error") { print("3. class xs try-error");  return(NULL)}
+    print( paste( " #items sensors xs$totalItemCount=",xs$totalItemCount))
     # proceed only if we got some data
     if (xs$totalItemCount>0) {
       sourcesaux<-vector()
@@ -426,6 +430,8 @@
       if (any(!is.na(match(sourcesaux,metaStat$id)))) {
         match<-match(sourcesaux,metaStat$id)
         ix<-which(!is.na(match))
+print(metaStat)
+print(cbind(sourcesaux,match))
         frost_meta<-data.frame(sourcesaux[ix],
                                sensIdaux[ix],
                                xs$data$sourceId[ix],
@@ -443,6 +449,7 @@
                              "lon",
                              "lat",
                              "z")
+        print( paste( " #items intersection sensors/stations=",length(ix)))
       } else {
         print(paste("no data available: the two sets of (i) selected stations",
                     "and (ii) available sensors did not match"))

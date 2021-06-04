@@ -42,6 +42,13 @@
        ElementCodes$level.value[i]=NA
        ElementCodes$level.levelType[i]=""
               },
+       "TA_010" = {
+       ElementCodes$elementId[i]="air_temperature"
+       ElementCodes$timeOffset[i]="PT0H"
+       ElementCodes$timeResolution[i]="PT10M"
+       ElementCodes$level.value[i]=2
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
        "TA" = {
        ElementCodes$elementId[i]="air_temperature"
        ElementCodes$timeOffset[i]="PT0H"
