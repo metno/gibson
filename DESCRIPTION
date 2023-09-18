@@ -1,8 +1,8 @@
 Package: gibson
 Type: Package
 Title: get in-situ observations 
-Version: 0.0.8
-Date: 2020-11-04
+Version: 0.0.9
+Date: 2022-06-07
 Author: Cristian Lussana
 Maintainer: Cristian Lussana <cristianl@met.no>
 Depends: R (>= 2.0.0), jsonlite, xml2

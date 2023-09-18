@@ -84,6 +84,13 @@
        ElementCodes$level.value[i]=10
        ElementCodes$level.levelType[i]="height_above_ground"
               },
+       "FFM" = {  
+       ElementCodes$elementId[i]="mean(wind_speed P1D)"
+       ElementCodes$timeOffset[i]="PT0H"
+       ElementCodes$timeResolution[i]="P1D"
+       ElementCodes$level.value[i]=10
+       ElementCodes$level.levelType[i]="height_above_ground"
+              },
        "PR" = {  
        ElementCodes$elementId[i]="air_pressure_at_sea_level"
        ElementCodes$timeOffset[i]="PT0H"

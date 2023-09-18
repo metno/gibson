@@ -16,6 +16,7 @@
                                    coords=data.frame(x="lon",y="lat",
                                           proj4="+proj=longlat +datum=WGS84",
                                           stringsAsFactors=F),
+          file_station_list="/lustre/storeB/project/metkl/senorge2/case/etc/fmi_oper_list_of_stations.html",
           url4stnlist="http://en.ilmatieteenlaitos.fi/observation-stations",
                                    verbose=F)
 {
@@ -87,6 +88,7 @@
                            sleep_sec=5,
                            na.rm=T,
                            url.show=F,
+                           file_station_list=file_station_list,
                            url4stnlist=url4stnlist)
   if (is.null(res)) {
     print("ERROR while retriving data")

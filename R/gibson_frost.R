@@ -430,8 +430,6 @@
       if (any(!is.na(match(sourcesaux,metaStat$id)))) {
         match<-match(sourcesaux,metaStat$id)
         ix<-which(!is.na(match))
-print(metaStat)
-print(cbind(sourcesaux,match))
         frost_meta<-data.frame(sourcesaux[ix],
                                sensIdaux[ix],
                                xs$data$sourceId[ix],
