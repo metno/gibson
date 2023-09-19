@@ -3,6 +3,8 @@
                                     version="1.0",
                                     station_set_all=T,
                                     latest_hour=T,
+                                    latest_day=F,
+                                    latest_months=F,
                                     formatOUT="%Y-%m-%dT%H",
                                     coords=data.frame(x="lon",y="lat",
                                                       proj4="+proj=longlat +datum=WGS84",
@@ -33,8 +35,8 @@
 # Checks
   if (is.null(frost_oldElementCodes)) return(NULL)
 
-  if (!station_set_all | !latest_hour) {
-    print("ERROR option not yest implemented")
+  if (!(station_set_all & latest_hour) & !latest_months & !latest_day) {
+    print("ERROR option not yet implemented")
     return(NULL)
   }
 
@@ -61,6 +63,8 @@
                             version=version,
                             station_set_all=station_set_all,
                             latest_hour=latest_hour,
+                            latest_day=latest_day,
+                            latest_months=latest_months,
                             try.again=3,
                             sleep_sec=5,
                             na.rm=na.rm,
@@ -69,7 +73,18 @@
     print("ERROR while retriving data")
     return(NULL)
   }
-  if (length(res$smhi_opendata_data$station_key)==0) {
+  if (length(res$smhi_opendata_meta$station_key)==0) {
+    print("WARNING No data")
+    return(NULL)
+  }
+  if (length(res$smhi_opendata_data$elements)==0) {
+    print("WARNING No data")
+    return(NULL)
+  }
+  count <- 0
+  for (i in 1:length(res$smhi_opendata_data$elements))
+    count <- count + length(res$smhi_opendata_data$elements[[i]]$date_time)
+  if (count == 0) {
     print("WARNING No data")
     return(NULL)
   }
@@ -101,70 +116,18 @@
   } else {
     print("no metadata from smhi_opendata")
   }
+  res$smhi_opendata_meta$coords <- coords.val
 #
 #------------------------------------------------------------------------------
 # assembly output
   if (verbose) print("assembly  output")
   noldElementCodes<-length(ElParIds)
   for (v in 1:noldElementCodes) {
-    if (v==1) {
-      oEstr<-c(frost_oldElementCodes[1],
-               paste(frost_oldElementCodes[1],"_qcode",sep=""))
-    } else {
-      oEstr<-c(oEstr,
-               frost_oldElementCodes[v],
-               paste(frost_oldElementCodes[v],"_qcode",sep=""))
-    }
+    res$smhi_opendata_data$elements[[v]]$date_time_stamp <- 
+      Rdate2str( as.POSIXct( res$smhi_opendata_data$elements[[v]]$date_time / 1000,
+                             origin="1970-01-01", tz="UTC"),
+                             format=formatOUT)
   }
-  # get the timestamp
-  tstamp_unixtime<-unique(res$smhi_opendata_data$date
-                          [which(!is.na(res$smhi_opendata_data$date))])
-  if (length(tstamp_unixtime)!=1) {
-    print("ERROR all observations are supposed to be for the same hour")
-    return(NULL)
-  }
-  tstamp<-Rdate2str(as.POSIXct(tstamp_unixtime/1000,origin="1970-01-01",tz="UTC"),
-                    format=formatOUT)
-  # get values and dqc
-  ix_tmp<-integer(0)
-  for (v in 1:noldElementCodes)
-    ix_tmp<-c(ix_tmp,
-              which(res$smhi_opendata_data$frost_oldElementCodes==frost_oldElementCodes[v]))
-  if (length(ix_tmp)==0) return(NULL)
-  ix<-unique(ix_tmp)
-  rm(ix_tmp)
-  match<-match(res$smhi_opendata_meta$station_key,
-               res$smhi_opendata_data$station_key[ix])
-  ixIn<-which(res$smhi_opendata_meta$station_key %in% res$smhi_opendata_data$station_key[ix])
-  rm(ix)
-  nmeta<-length(ixIn)
-  if (nmeta==0) return(NULL)
-  value_qcode<-array(data=NA,dim=c(nmeta,(2*noldElementCodes)))
-  for (v in 1:noldElementCodes) {
-    ix_tmp<-which(res$smhi_opendata_data$frost_oldElementCodes==frost_oldElementCodes[v])
-    if (length(ix_tmp)==0) next
-    match<-match(res$smhi_opendata_meta$station_key[ixIn],
-                 res$smhi_opendata_data$station_key[ix_tmp])
-    nonas<-which(!is.na(match))
-    if (length(nonas)==0) next
-    value_qcode[nonas,(2*(v-1)+1):(2*v)]<-
-     cbind(as.numeric(res$smhi_opendata_data$value[ix_tmp[match[nonas]]]),
-           res$smhi_opendata_data$qcode[ix_tmp[match[nonas]]])
-  }
-  rm(ix_tmp,match,nonas)
-  out<-data.frame(
-      rep(tstamp,format=formatOUT,nmeta),
-      res$smhi_opendata_meta$station_key[ixIn],
-      coords.val[ixIn,],
-      res$smhi_opendata_meta$z[ixIn],
-      value_qcode,
-      stringsAsFactors=F)
-  names(out)<-c("timestamp",
-                "sourceId",
-                costr,
-                "z",
-                oEstr)
-  rm(ixIn)
 #------------------------------------------------------------------------------
-    return(out)
+    return(res)
 }
