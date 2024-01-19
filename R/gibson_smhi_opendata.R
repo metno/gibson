@@ -79,7 +79,6 @@
         if (regexpr(pattern="HTTP error 404",attr(xs,"condition"))[1]>0) next
         return(NULL)
       }
-save(file=paste0("tmp",parameterIds[i],".rdata"),xs)
       xs_itemcount<-dim(xs$station)[1]
       if (xs_itemcount==0) next
       if (!exists("meta")) {
@@ -210,7 +209,8 @@ save(file=paste0("tmp",parameterIds[i],".rdata"),xs)
         # ERROR: smhi is not happy with our request, or it is in a bad mood
         if (class(xsj)=="try-error") {
           if (regexpr(pattern="HTTP error 404",attr(xsj,"condition"))[1]>0) next
-          return(NULL)
+#          return(NULL)
+          next
         }
         if ( length(xsj$value) == 0) next
         xsj_itemcount <- dim(xsj$value)[1]
